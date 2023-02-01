@@ -10,6 +10,9 @@ public:
 private: 
 	QLabel *depth_l;
 	QLabel *velocity_l;
+	QLabel *row_l;
+	QLabel *pitch_l;
+	QLabel *yaw_l;
 private slots:
 
 };

@@ -12,16 +12,27 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 //	setStyleSheet("background-color:black;");
 	auto central = new QWidget;
 	grid = new QGridLayout(central);
+//	grid->setContentsMargins(0, 0, 0, 0);
 	initWidgets(grid);
 	createMenus();
-//	central->setLayout(grid);
 	setCentralWidget(central);
 
 }
 void MainWindow::initWidgets(QGridLayout *grid)
 {
 	t = new Telemetry(this);
-	grid->addWidget(t, 1, 0);
+	Telemetry *t1 = new Telemetry(this);
+	Telemetry *t2 = new Telemetry(this);
+	Telemetry *t3 = new Telemetry(this);
+	Telemetry *t4 = new Telemetry(this);
+	QWidget *empty = new QWidget(this);
+//	t1->setStyleSheet("QWidget{background-color:yellow}");	
+	grid->addWidget(t, 0, 0, 1, 1);
+	grid->addWidget(empty, 1, 0, 5, 1);
+//	grid->addWidget(t2, 1, 0);
+//	grid->addWidget(t3, 1, 1);
+//	grid->addWidget(t4, 0, 2);
+
 }
 void MainWindow::initActions()
 {

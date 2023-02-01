@@ -10,7 +10,7 @@ int main(int argc, char **argv)
 	MainWindow wndw;
 	wndw.resize(scr->geometry().width(), scr->geometry().height());
 	wndw.show();
-	Telemetry wndw1;
-	wndw1.show();
+//	Telemetry wndw1;
+//	wndw1.show();
 	return app.exec();
 }
