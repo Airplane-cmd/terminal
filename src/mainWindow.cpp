@@ -4,19 +4,31 @@
 #include <QMenuBar>
 #include <QMainWindow>
 #include <QAction>
+#include <QString>
+#include <QTextStream>
+
 #include "mainWindow.h"
 #include "telemetry.h"
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
 	setStyleSheet("QMenu::item::selected{background-color: black; }");
-//	setStyleSheet("background-color:black;");
 	auto central = new QWidget;
 	grid = new QGridLayout(central);
-//	grid->setContentsMargins(0, 0, 0, 0);
 	initWidgets(grid);
 	createMenus();
 	setCentralWidget(central);
-
+	connect(telemetry_w, &QAction::triggered, this, &MainWindow::showTelemetryWindow);
+}
+void MainWindow::showTelemetryWindow()
+{
+	QTextStream out(stdout);
+//	Telemetry wind;
+	t_wndw = new Telemetry;
+	t_wndw->setWindowTitle("Telemetry");
+	t_wndw->show();
+	out << "Telemetry window created;" << Qt::endl;
+		
 }
 void MainWindow::initWidgets(QGridLayout *grid)
 {

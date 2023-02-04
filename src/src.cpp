@@ -5,6 +5,7 @@
 #include "telemetry.h"
 int main(int argc, char **argv)
 {
+
 	QApplication app(argc, argv);
 	QScreen *scr = QGuiApplication::primaryScreen();
 	MainWindow wndw;

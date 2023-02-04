@@ -47,9 +47,11 @@ private:
 	
 	QGridLayout *grid;
 	Telemetry *t;
-
+	Telemetry *t_wndw;
 	void createMenus();
 	void initActions();
 	void initWidgetsMenu();
 	void initWidgets(QGridLayout *);
+private slots:
+	void showTelemetryWindow();
 };

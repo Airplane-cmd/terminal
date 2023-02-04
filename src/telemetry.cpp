@@ -3,9 +3,14 @@
 #include <QVBoxLayout>
 #include <QString> 
 #include <vector>
+#include <QTextStream>
+
 #include "telemetry.h"
 Telemetry::Telemetry(QWidget *parent) : QWidget(parent)
 {
+	QTextStream out{stdout};
+	out << "Telemetry widget created;" << Qt::endl;
+
 	setStyleSheet("background-color:yellow;");
 	std::vector<QLabel *> labels;
 	QVBoxLayout *vbox = new QVBoxLayout(this);
@@ -48,4 +53,8 @@ Telemetry::Telemetry(QWidget *parent) : QWidget(parent)
 	setLayout(vbox);
 
 }
-
+Telemetry::~Telemetry()
+{
+	QTextStream out{stdout};
+	out << "Telemetry widget destroyed;" << Qt::endl;
+}
