@@ -9,10 +9,13 @@
 
 #include "mainWindow.h"
 #include "telemetry.h"
-
+#include "logs.h"
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
 	setStyleSheet("QMenu::item::selected{background-color: black; }");
+
+	curLog = LogsHolder::initLogFile();
+
 	auto central = new QWidget;
 	grid = new QGridLayout(central);
 	initWidgets(grid);
@@ -26,6 +29,7 @@ void MainWindow::showTelemetryWindow()
 //	Telemetry wind;
 	t_wndw = new Telemetry;
 	t_wndw->setWindowTitle("Telemetry");
+	t_wndw->resize(200, 200); 
 	t_wndw->show();
 	out << "Telemetry window created;" << Qt::endl;
 		
@@ -33,14 +37,13 @@ void MainWindow::showTelemetryWindow()
 void MainWindow::initWidgets(QGridLayout *grid)
 {
 	t = new Telemetry(this);
-	Telemetry *t1 = new Telemetry(this);
-	Telemetry *t2 = new Telemetry(this);
-	Telemetry *t3 = new Telemetry(this);
-	Telemetry *t4 = new Telemetry(this);
+	lh = new LogsHolder(this);
+
 	QWidget *empty = new QWidget(this);
 //	t1->setStyleSheet("QWidget{background-color:yellow}");	
 	grid->addWidget(t, 0, 0, 1, 1);
-	grid->addWidget(empty, 1, 0, 5, 1);
+	grid->addWidget(lh, 1, 0, 2, 1);
+	grid->addWidget(empty, 2, 0, 3, 1);
 //	grid->addWidget(t2, 1, 0);
 //	grid->addWidget(t3, 1, 1);
 //	grid->addWidget(t4, 0, 2);

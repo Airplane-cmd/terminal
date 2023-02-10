@@ -8,8 +8,10 @@
 #include <QGridLayout>
 #include <QMainWindow>
 #include <vector>
+#include <QString>
 
 #include "telemetry.h"
+#include "logs.h"
 class MainWindow : public QMainWindow
 {
 Q_OBJECT
@@ -48,6 +50,13 @@ private:
 	QGridLayout *grid;
 	Telemetry *t;
 	Telemetry *t_wndw;
+
+	LogsHolder *lh;
+	LogsHolder *lh_wndw;
+
+	bool gotLogInfo;
+	QString curLog;
+
 	void createMenus();
 	void initActions();
 	void initWidgetsMenu();
