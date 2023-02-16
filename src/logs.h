@@ -4,13 +4,17 @@
 #include <QDateTime>
 #include <QFile>
 #include <QDir>
+
+//#include "mainWindow.h"
 class LogsHolder : public QWidget
 {
+friend class MainWindow;
 public:
 	LogsHolder(QWidget *parent = 0);
-	static QString initLogFile();
+	QString initLogFile();
 	static void writeInLog(const QString &msg);
 private:
-	QTextEdit *te;
+	QTextEdit *qte;
+	QString log_file;
 };
 	

@@ -15,6 +15,7 @@
 class MainWindow : public QMainWindow
 {
 Q_OBJECT
+friend class LogsHolder;
 public:
 	MainWindow(QWidget *parent = 0);
 protected:
@@ -55,7 +56,7 @@ private:
 	LogsHolder *lh_wndw;
 
 	bool gotLogInfo;
-	QString curLog;
+	static QString curLog;
 
 	void createMenus();
 	void initActions();

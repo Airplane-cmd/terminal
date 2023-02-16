@@ -13,12 +13,12 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
 	setStyleSheet("QMenu::item::selected{background-color: black; }");
-
-	curLog = LogsHolder::initLogFile();
+//	LogsHolder::initLogFile();
 
 	auto central = new QWidget;
 	grid = new QGridLayout(central);
 	initWidgets(grid);
+
 	createMenus();
 	setCentralWidget(central);
 	connect(telemetry_w, &QAction::triggered, this, &MainWindow::showTelemetryWindow);

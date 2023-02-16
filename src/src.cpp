@@ -12,7 +12,7 @@ int main(int argc, char **argv)
 	MainWindow wndw;
 	wndw.resize(scr->geometry().width(), scr->geometry().height());
 	wndw.show();
-	LogsHolder::initLogFile();
+//	LogsHolder::initLogFile();
 //	LogsHolder wndw1;
 //	wndw1.show();
 //	Telemetry wndw1;
