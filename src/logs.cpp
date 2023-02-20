@@ -78,4 +78,20 @@ QString LogsHolder::initLogFile()
 	log_file = filename; 
 	return filename;
 }
-//QString LogsHolder::WriteInLog()
+void LogsHolder::writeInLog(const QString &msg)
+{
+
+	QString data = msg + " " + QString(QTime::currentTime().toString("hh:mm:ss:zzz"));
+	QFile log(log_file);
+	if(log.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text))
+	{
+		QTextStream fstream(&log);
+		fstream << data << Qt::endl;
+		log.close();
+	}
+	qte->append(data);
+	qte->show();
+
+
+}
+

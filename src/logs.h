@@ -12,7 +12,7 @@ friend class MainWindow;
 public:
 	LogsHolder(QWidget *parent = 0);
 	QString initLogFile();
-	static void writeInLog(const QString &msg);
+	void writeInLog(const QString &msg);
 private:
 	QTextEdit *qte;
 	QString log_file;

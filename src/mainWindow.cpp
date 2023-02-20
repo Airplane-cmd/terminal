@@ -32,6 +32,7 @@ void MainWindow::showTelemetryWindow()
 	t_wndw->resize(200, 200); 
 	t_wndw->show();
 	out << "Telemetry window created;" << Qt::endl;
+	lh->writeInLog("Telemetry window shown");
 		
 }
 void MainWindow::initWidgets(QGridLayout *grid)
@@ -61,6 +62,7 @@ void MainWindow::initActions()
 	forceLimits_w = new QAction("Force Limit", this);
 	algorithms_w = new QAction("Algorithms", this);
 	data_w = new QAction("Data", this);
+	lh->writeInLog("Some actions initiated");
 
 }
 void MainWindow::initWidgetsMenu()
@@ -80,6 +82,7 @@ void MainWindow::initWidgetsMenu()
 		checkBoxes[i]->setCheckable(1);
 		checkBoxes[i]->setChecked(1);
 	}
+	lh->writeInLog("widgets menu initiated");
 	
 }
 void MainWindow::createMenus()
@@ -111,5 +114,6 @@ void MainWindow::createMenus()
 
 	controllers = devices->addMenu("Controllers");
 	controllers->addAction(settings);
+	lh->writeInLog("Menus created");
 }
 		
