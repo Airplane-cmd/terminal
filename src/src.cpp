@@ -4,6 +4,7 @@
 #include "mainWindow.h"
 #include "telemetry.h"
 #include "logs.h"
+#include "powerLimit.h"
 int main(int argc, char **argv)
 {
 
@@ -12,6 +13,8 @@ int main(int argc, char **argv)
 	MainWindow wndw;
 	wndw.resize(scr->geometry().width(), scr->geometry().height());
 	wndw.show();
+	PowerLimit wndw1;
+	wndw1.show();
 //	LogsHolder::initLogFile();
 //	LogsHolder wndw1;
 //	wndw1.show();

@@ -8,8 +8,7 @@
 #include <QTextStream>
 
 #include "mainWindow.h"
-#include "telemetry.h"
-#include "logs.h"
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
 	setStyleSheet("QMenu::item::selected{background-color: black; }");
@@ -39,12 +38,14 @@ void MainWindow::initWidgets(QGridLayout *grid)
 {
 	t = new Telemetry(this);
 	lh = new LogsHolder(this);
+	pl = new PowerLimit(this);
 
 	QWidget *empty = new QWidget(this);
 //	t1->setStyleSheet("QWidget{background-color:yellow}");	
 	grid->addWidget(t, 0, 0, 1, 1);
 	grid->addWidget(lh, 1, 0, 2, 1);
-	grid->addWidget(empty, 2, 0, 3, 1);
+	grid->addWidget(pl, 3, 0, 1, 1);
+	grid->addWidget(empty, 4, 0, 2, 1);
 //	grid->addWidget(t2, 1, 0);
 //	grid->addWidget(t3, 1, 1);
 //	grid->addWidget(t4, 0, 2);
