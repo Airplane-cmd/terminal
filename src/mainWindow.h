@@ -13,6 +13,8 @@
 #include "telemetry.h"
 #include "logs.h"
 #include "powerLimit.h"
+#include "algorithms.h"
+
 class MainWindow : public QMainWindow
 {
 Q_OBJECT
@@ -57,6 +59,8 @@ private:
 	LogsHolder *lh_wndw;
 
 	PowerLimit *pl;
+
+	Algorithms *alg;
 
 	bool gotLogInfo;
 	static QString curLog;
