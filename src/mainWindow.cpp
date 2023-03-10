@@ -17,16 +17,28 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	auto central = new QWidget;
 	grid = new QGridLayout(central);
 	initWidgets(grid);
-
+	
 	createMenus();
 	setCentralWidget(central);
-	connect(telemetry_w, &QAction::triggered, this, &MainWindow::showTelemetryWindow);
+
+	udpHolder = new UdpHolder(this);
+//	connect(this, &MainWindow::updateTelemetry, t, &Telemetry::updateTelemetry);
+//	connect(udpHolder, SIGNAL(dataReceived(const std::array<float, 13> , const std::vector<std::vector<bool>> )), t, SLOT(updateTelemetry(const std::array<float, 13> , const std::vector<std::vector<bool>> )));//crazy 
+	connect(udpHolder, &UdpHolder::dataReceived, t, &Telemetry::updateTelemetry);
+//	connect(telemetry_w, &QAction::triggered, this, &MainWindow::showTelemetryWindow);
+//	connect(udpHolder, SIGNAL(dataReceived(float)), this, SLOT(udpDataReceived(float)));
+
+
+}
+void MainWindow::udpDataReceived(float roll)
+{
+	qDebug() << roll << Qt::endl;
 }
 void MainWindow::showTelemetryWindow()
 {
 	QTextStream out(stdout);
 //	Telemetry wind;
-	t_wndw = new Telemetry;
+	t_wndw = new Telemetry(this);
 	t_wndw->setWindowTitle("Telemetry");
 	t_wndw->resize(200, 200); 
 	t_wndw->show();

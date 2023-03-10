@@ -5,6 +5,8 @@
 #include <vector>
 #include <QTextStream>
 
+#include <cmath>
+
 #include "telemetry.h"
 Telemetry::Telemetry(QWidget *parent) : QWidget(parent)
 {
@@ -16,11 +18,11 @@ Telemetry::Telemetry(QWidget *parent) : QWidget(parent)
 	QVBoxLayout *vbox = new QVBoxLayout(this);
 
 
-	QString s_depth = "Depth: ";
-	QString s_velocity = "Velocity: ";
-	QString s_row = "Row: ";
-	QString s_pitch = "Pitch: ";
-	QString s_yaw = "Yaw: ";
+	QString s_depth    = "Depth   : N/A";
+	QString s_velocity = "Velocity: N/A";
+	QString s_row      = "Roll    : N/A";
+	QString s_pitch    = "Pitch   : N/A";
+	QString s_yaw      = "Yaw     : N/A";
 	depth_l = new QLabel(s_depth, this);
 	velocity_l = new QLabel(s_velocity, this);
 	row_l = new QLabel(s_row, this);
@@ -50,8 +52,20 @@ Telemetry::Telemetry(QWidget *parent) : QWidget(parent)
 
 //	vbox->addWidget(velocity_l);
 //	vbox->setContentsMargins(1, 1, 1, 1);
-	setLayout(vbox);
+//	setLayout(vbox);
 
+}
+void Telemetry::updateTelemetry(std::array<float, 13> floats, std::vector<std::vector<bool>> cntnr)
+{
+//	qDebug() << "called" << Qt::endl;
+//	QTextStream out{stdout};
+//	out << "cytvguhbijnoij9h89g78yvuhl kjpijhugyvuh jklnoubiyvu" << Qt::endl;
+	depth_l->setText(QString("Depth:   %1").arg(floats[5]));
+	row_l->setText(QString("Roll:     %1").arg(floats[0]));
+	pitch_l->setText(QString("Pitch:   %1").arg(floats[1]));
+	yaw_l->setText(QString     ("Yaw:     %1").arg(floats[2]));
+	velocity_l->setText(QString("Velocity:%1").arg(sqrt(pow(floats[8], 2) + pow(floats[9], 2))));
+	update();
 }
 Telemetry::~Telemetry()
 {

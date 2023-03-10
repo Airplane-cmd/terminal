@@ -14,6 +14,7 @@
 #include "logs.h"
 #include "powerLimit.h"
 #include "algorithms.h"
+#include "udpHolder.h"
 
 class MainWindow : public QMainWindow
 {
@@ -64,6 +65,8 @@ private:
 
 	bool gotLogInfo;
 	static QString curLog;
+	
+	UdpHolder *udpHolder;
 
 	void createMenus();
 	void initActions();
@@ -71,4 +74,5 @@ private:
 	void initWidgets(QGridLayout *);
 private slots:
 	void showTelemetryWindow();
+	void udpDataReceived(float roll);
 };

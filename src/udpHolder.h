@@ -1,0 +1,34 @@
+#ifndef UDPHOLDER_H
+#define UDPHOLDER_H
+
+#include <QObject>
+#include <QUdpSocket>
+#include <QByteArray>
+
+#include <vector>
+#include <string>
+#include <cstring>
+
+class UdpHolder : public QObject
+{
+Q_OBJECT
+public:
+	UdpHolder(QObject *parent = 0);
+	virtual ~UdpHolder();
+
+signals:
+	void dataReceived(std::array<float, 13>, std::vector<std::vector<bool>>);
+private slots:
+	void readPendingDatagrams();
+private:
+	QUdpSocket *socket;
+	void getPID(const QByteArray &arr);
+	void getStat(const QByteArray &arr);
+	void getLeaks(const QByteArray &arr);
+	void getErrors(const QByteArray &arr);
+	float getFloat(const QByteArray &arr, const std::string &arg);
+	std::vector<bool> getInt(const QByteArray &arr, const std::string &arg);
+	void printTelemetry(const QByteArray &buffer, const std::array<float, 13> &floats);
+
+};
+#endif
