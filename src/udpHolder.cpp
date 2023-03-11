@@ -1,19 +1,44 @@
+#include <QTimer>
 #include "udpHolder.h"
 
 UdpHolder::UdpHolder(QObject *parent) : QObject{parent}
 {
 	socket = new QUdpSocket(this);
+	socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+	socket->setReadBufferSize(0);
+//	datagram = new QByteArray;
+	datagram.resize(40);
+	QTimer *timer = new QTimer(this);
 	socket->bind(QHostAddress::Any, 2065);
 	connect(socket, &QUdpSocket::readyRead, this, &UdpHolder::readPendingDatagrams);
+//	connect(timer, &QTimer::timeout, this, &UdpHolder::writePendingDatagram);
+
+	timer->start(100);
+		
 }
 UdpHolder::~UdpHolder()
 {
 	delete socket;
 }
-//void UdpHolder::dataReceived(float roll)
-//{
-//	qDebug() << roll << Qt::endl;
-//}
+uint16_t UdpHolder::calculateCRC(const QByteArray &dataR)
+{
+	QByteArray data;
+	data.resize(dataR.size() - 2);
+	for(int i = 0; i < data.size(); ++i)	data[i] = dataR[i];
+	uint16_t crc = 0xFFFF;
+	for (int i = 0; i < data.size(); ++i)
+	{
+//        	uint8_t byte = data[i];
+        	crc ^= data[i];
+        	for (int j = 0; j < 8; ++j)
+		{
+        		uint16_t mask = -(crc & 1);
+            		crc = (crc >> 1) ^ (0xA001 & mask);
+        	}
+	}
+    	return crc;
+}
+
 void UdpHolder::readPendingDatagrams()
 {
 	while(socket->hasPendingDatagrams())
@@ -21,16 +46,7 @@ void UdpHolder::readPendingDatagrams()
 		QTextStream out(stdout);
 		QByteArray buffer;
         	buffer.resize(socket->pendingDatagramSize());
-                QHostAddress sender;
-                quint16 senderPort;
-                socket->readDatagram(buffer.data(), buffer.size(), &sender, &senderPort);
-//		float roll = getFloat(buffer, "r");
-//		for(int i = 0; i < buffer.size(); ++i)
-//		{
-//              	QString msg = QString::toHex(buffer[i]);
-//			out << i << ": 0x" << Qt::hex << static_cast<uint8_t>(buffer[i]) << Qt::dec << Qt::endl;
-//		}                                                            
-//                std::system("clear");
+		socket->readDatagram(buffer.data(), buffer.size(), &sender, &senderPort);
 
 		std::array<float, 13> floats;
 		floats[0] = getFloat(buffer, "r");
@@ -53,28 +69,21 @@ void UdpHolder::readPendingDatagrams()
 		cntnr.push_back(getInt(buffer, "leak"));	
 		cntnr.push_back(getInt(buffer, "err"));
 
-/*		out << "Roll:        " << floats[0] << Qt::endl; 
-                out << "Pitch:       " << floats[1] << Qt::endl;
-                out << "Yaw:         " << floats[2] << Qt::endl;
-        	out << "Gyroscope:   " << getFloat(buffer, "g") << Qt::endl; 
-                out << "Altitude:    " << getFloat(buffer, "a") << Qt::endl; 
-                out << "Depth:       " << getFloat(buffer, "d") << Qt::endl;  
-                out << "Voltage:     " << getFloat(buffer, "vl") << Qt::endl; 
-                out << "Current:     " << getFloat(buffer, "c") << Qt::endl;   
-                out << "Velocity_X:  " << getFloat(buffer, "v_x") << Qt::endl; 
-                out << "Velocity_Y:  " << getFloat(buffer, "v_y") << Qt::endl; 
-                out << "Pos_X:       " << getFloat(buffer, "ps_x") << Qt::endl;
-                out << "Pos_Y:       " << getFloat(buffer, "ps_y") << Qt::endl;
-                out << "Temperature: " << getFloat(buffer, "t") << Qt::endl;
-		getPID(buffer);   
-                getStat(buffer);  
-		getLeaks(buffer); 
-		getErrors(buffer);*/
-//		qDebug() << roll << Qt::endl;
-		printTelemetry(buffer);
+//		printTelemetry(buffer);
+		printDatagram(buffer);
+		uint16_t crc = calculateCRC(buffer);
+//		qDebug() << static_cast<uint16_t>(buffer.right(2).toUInt()) << " ? " << crc << Qt::endl;
 		emit dataReceived(floats, cntnr);
-//		qDebug() << roll << Qt::endl;
         }
+}
+void UdpHolder::writePendingDatagram()
+{
+	datagram[0] = 0;
+	datagram[1] = 230;
+	uint16_t crcR = calculateCRC(datagram);
+	uint16_t crc = ((crcR >> 8) & 0x00FF) | ((crcR << 8) & 0xFF00);
+	std::memcpy(datagram.data() + 38, &crc, 2);
+	socket->writeDatagram(datagram.data(), datagram.size(), sender, senderPort);
 }
 void UdpHolder::printTelemetry(const QByteArray &buffer)
 {
@@ -98,6 +107,14 @@ void UdpHolder::printTelemetry(const QByteArray &buffer)
         getStat(buffer);  
 	getLeaks(buffer); 
 	getErrors(buffer);
+}
+void UdpHolder::printDatagram(const QByteArray &buffer)
+{
+	for(int i = 0; i < buffer.size(); ++i)
+	{
+//              	QString msg = QString::toHex(buffer[i]);
+		qDebug() << i << ": 0x" << Qt::hex << static_cast<uint8_t>(buffer[i]) << Qt::dec << Qt::endl;
+	}         
 }
 float UdpHolder::getFloat(const QByteArray &arr, const std::string &arg)
 {
@@ -177,7 +194,7 @@ void UdpHolder::getStat(const QByteArray &arr)
         QTextStream out(stdout);
         out << " Stat: " << Qt::endl;
         out << "      Magnet1: " << ((vctr[0]) ? "activated\n" : "not activated\n");
-        out << "      Magnet2: " << ((vctr[0]) ? "activated\n" : "not activated\n");
+        out << "      Magnet2: " << ((vctr[1]) ? "activated\n" : "not activated\n");
 }
 void UdpHolder::getLeaks(const QByteArray &arr)
 {

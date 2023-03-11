@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include <cstddef>
 
 class UdpHolder : public QObject
 {
@@ -20,15 +21,25 @@ signals:
 	void dataReceived(std::array<float, 13>, std::vector<std::vector<bool>>);
 private slots:
 	void readPendingDatagrams();
+	void writePendingDatagram();
+	 
 private:
 	QUdpSocket *socket;
+	QByteArray datagram;
+
+	QHostAddress sender;
+	quint16 senderPort;
+
+	uint16_t calculateCRC(const QByteArray &);
+
 	void getPID(const QByteArray &arr);
 	void getStat(const QByteArray &arr);
 	void getLeaks(const QByteArray &arr);
 	void getErrors(const QByteArray &arr);
 	float getFloat(const QByteArray &arr, const std::string &arg);
 	std::vector<bool> getInt(const QByteArray &arr, const std::string &arg);
-	void printTelemetry(const QByteArray &buffer);
 
+	void printTelemetry(const QByteArray &buffer);
+	void printDatagram(const QByteArray &);
 };
 #endif
