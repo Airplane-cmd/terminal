@@ -71,19 +71,19 @@ void UdpHolder::readPendingDatagrams()
 		getLeaks(buffer); 
 		getErrors(buffer);*/
 //		qDebug() << roll << Qt::endl;
-		printTelemetry(buffer, floats);
+		printTelemetry(buffer);
 		emit dataReceived(floats, cntnr);
 //		qDebug() << roll << Qt::endl;
         }
 }
-void UdpHolder::printTelemetry(const QByteArray &buffer, const std::array<float, 13> &floats)
+void UdpHolder::printTelemetry(const QByteArray &buffer)
 {
 
 	QTextStream out(stdout);
 	std::system("clear");
-	out << "Roll:        " << floats[0] << Qt::endl; 
-	out << "Pitch:       " << floats[1] << Qt::endl;
-	out << "Yaw:         " << floats[2] << Qt::endl;
+	out << "Roll:        " << getFloat(buffer, "r") << Qt::endl; 
+	out << "Pitch:       " << getFloat(buffer, "pt") << Qt::endl;
+	out << "Yaw:         " << getFloat(buffer, "y") << Qt::endl;
 	out << "Gyroscope:   " << getFloat(buffer, "g") << Qt::endl; 
 	out << "Altitude:    " << getFloat(buffer, "a") << Qt::endl; 
 	out << "Depth:       " << getFloat(buffer, "d") << Qt::endl;  

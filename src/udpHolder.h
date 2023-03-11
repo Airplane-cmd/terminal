@@ -28,7 +28,7 @@ private:
 	void getErrors(const QByteArray &arr);
 	float getFloat(const QByteArray &arr, const std::string &arg);
 	std::vector<bool> getInt(const QByteArray &arr, const std::string &arg);
-	void printTelemetry(const QByteArray &buffer, const std::array<float, 13> &floats);
+	void printTelemetry(const QByteArray &buffer);
 
 };
 #endif
