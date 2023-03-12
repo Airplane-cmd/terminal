@@ -4,8 +4,8 @@
 UdpHolder::UdpHolder(QObject *parent) : QObject{parent}
 {
 	socket = new QUdpSocket(this);
-	socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-	socket->setReadBufferSize(0);
+//	socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+//	socket->setReadBufferSize(0);
 //	datagram = new QByteArray;
 	datagram.resize(40);
 	QTimer *timer = new QTimer(this);
@@ -25,7 +25,7 @@ uint16_t UdpHolder::calculateCRC(const QByteArray &dataR)
 	QByteArray data;
 	data.resize(dataR.size() - 2);
 	for(int i = 0; i < data.size(); ++i)	data[i] = dataR[i];
-	uint16_t crc = 0xFFFF;
+/*	uint16_t crc = 0x8005;
 	for (int i = 0; i < data.size(); ++i)
 	{
 //        	uint8_t byte = data[i];
@@ -36,6 +36,24 @@ uint16_t UdpHolder::calculateCRC(const QByteArray &dataR)
             		crc = (crc >> 1) ^ (0xA001 & mask);
         	}
 	}
+
+*/	uint16_t crc = 0;
+ 	int bits_read = 0;
+	int bit_flag;
+///*	
+	for (int i = 0; i < data.size(); ++i)
+	{
+		for(int j = 0; j < 8; ++j)
+		{
+	 		bit_flag = crc >> 15;
+			crc <<= 1;
+	  		crc |= (data[i] >> (7 - bits_read)) & 1;
+			++bits_read;
+	  		if(bits_read > 7)	bits_read = 0;
+	  		if(bit_flag)		crc ^= 0x8005;
+	  	}
+	}
+//*/
     	return crc;
 }
 
@@ -70,10 +88,12 @@ void UdpHolder::readPendingDatagrams()
 		cntnr.push_back(getInt(buffer, "err"));
 
 //		printTelemetry(buffer);
-		printDatagram(buffer);
+//		printDatagram(buffer);
 		uint16_t crc = calculateCRC(buffer);
-//		qDebug() << static_cast<uint16_t>(buffer.right(2).toUInt()) << " ? " << crc << Qt::endl;
-		emit dataReceived(floats, cntnr);
+		//fkvjnb jfnbj
+		uint16_t crc_C = ((uint16_t(buffer[58]) << 8) | buffer[59]);  
+		qDebug() << crc_C << " ? " << crc << Qt::endl;
+		if(crc_C == crc)	emit dataReceived(floats, cntnr);
         }
 }
 void UdpHolder::writePendingDatagram()
