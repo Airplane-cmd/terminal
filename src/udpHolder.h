@@ -27,8 +27,13 @@ private:
 	QUdpSocket *socket;
 	QByteArray datagram;
 
+	QUdpSocket *socket_T;
+	
 	QHostAddress sender;
 	quint16 senderPort;
+	
+//	QHostAddress receiver;
+	quint16 receiverPort;
 
 	uint16_t calculateCRC(const QByteArray &);
 

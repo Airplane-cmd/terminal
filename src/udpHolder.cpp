@@ -4,21 +4,31 @@
 UdpHolder::UdpHolder(QObject *parent) : QObject{parent}
 {
 	socket = new QUdpSocket(this);
+	
 //	socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
 //	socket->setReadBufferSize(0);
 //	datagram = new QByteArray;
 	datagram.resize(40);
+
 	QTimer *timer = new QTimer(this);
 	socket->bind(QHostAddress::Any, 2065);
+
+	socket_T = new QUdpSocket(this);
+//	socket_T->bind(QHostAddress::Any, 2030);
+	receiverPort = 2030;
+//	receiver = new QHostAddress("192.168.90.1");
+
 	connect(socket, &QUdpSocket::readyRead, this, &UdpHolder::readPendingDatagrams);
-//	connect(timer, &QTimer::timeout, this, &UdpHolder::writePendingDatagram);
+	connect(timer, &QTimer::timeout, this, &UdpHolder::writePendingDatagram);
 
 	timer->start(100);
 		
 }
 UdpHolder::~UdpHolder()
 {
+	qDebug() << "dead" << Qt::endl;
 	delete socket;
+	delete socket_T;
 }
 uint16_t UdpHolder::calculateCRC(const QByteArray &dataR)
 {
@@ -38,19 +48,19 @@ uint16_t UdpHolder::calculateCRC(const QByteArray &dataR)
 	}
 
 */	uint16_t crc = 0;
- 	int bits_read = 0;
-	int bit_flag;
+ 	uint8_t bitsRead = 0;
+	uint8_t flag;
 ///*	
 	for (int i = 0; i < data.size(); ++i)
 	{
 		for(int j = 0; j < 8; ++j)
 		{
-	 		bit_flag = crc >> 15;
+	 		flag = crc >> 15;
 			crc <<= 1;
-	  		crc |= (data[i] >> (7 - bits_read)) & 1;
-			++bits_read;
-	  		if(bits_read > 7)	bits_read = 0;
-	  		if(bit_flag)		crc ^= 0x8005;
+	  		crc |= (data[i] >> (7 - bitsRead)) & 1;
+			++bitsRead;
+	  		if(bitsRead > 7)	bitsRead = 0;
+	  		if(flag)		crc ^= 0x8005;
 	  	}
 	}
 //*/
@@ -87,12 +97,12 @@ void UdpHolder::readPendingDatagrams()
 		cntnr.push_back(getInt(buffer, "leak"));	
 		cntnr.push_back(getInt(buffer, "err"));
 
-//		printTelemetry(buffer);
+		printTelemetry(buffer);
 //		printDatagram(buffer);
 		uint16_t crc = calculateCRC(buffer);
 		//fkvjnb jfnbj
 		uint16_t crc_C = ((uint16_t(buffer[58]) << 8) | buffer[59]);  
-		qDebug() << crc_C << " ? " << crc << Qt::endl;
+//		qDebug() << crc_C << " ? " << crc << Qt::endl;
 		if(crc_C == crc)	emit dataReceived(floats, cntnr);
         }
 }
@@ -100,10 +110,20 @@ void UdpHolder::writePendingDatagram()
 {
 	datagram[0] = 0;
 	datagram[1] = 230;
+	datagram[2] = uint8_t(5);
+	datagram[3] = uint8_t(5);
+	datagram[4] = uint8_t(5);
+	datagram[5] = uint8_t(5);
+
+	QHostAddress receiver("192.168.90.1");
+
 	uint16_t crcR = calculateCRC(datagram);
-	uint16_t crc = ((crcR >> 8) & 0x00FF) | ((crcR << 8) & 0xFF00);
-	std::memcpy(datagram.data() + 38, &crc, 2);
-	socket->writeDatagram(datagram.data(), datagram.size(), sender, senderPort);
+	datagram[38] = uint8_t(crcR >> 8);
+	datagram[39] = uint8_t((crcR << 8) >> 8);
+//	uint16_t crc = ((crcR >> 8) & 0x00FF) | ((crcR << 8) & 0xFF00);
+//	std::memcpy(datagram.data() + 38, &crcR, 2);
+	socket_T->writeDatagram(datagram, receiver, receiverPort);
+//	qDebug() << "sent" << Qt::endl;
 }
 void UdpHolder::printTelemetry(const QByteArray &buffer)
 {
