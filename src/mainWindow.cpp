@@ -1,4 +1,3 @@
-#pragma once
 #include <QWidget>
 #include <QMenu>
 #include <QMenuBar>
@@ -22,10 +21,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	setCentralWidget(central);
 
 	udpHolder = new UdpHolder(this);
+	usbHolder = new USBHolder(this);
 //	connect(this, &MainWindow::updateTelemetry, t, &Telemetry::updateTelemetry);
 //	connect(udpHolder, SIGNAL(dataReceived(const std::array<float, 13> , const std::vector<std::vector<bool>> )), t, SLOT(updateTelemetry(const std::array<float, 13> , const std::vector<std::vector<bool>> )));//crazy 
 	connect(udpHolder, &UdpHolder::dataReceived, t, &Telemetry::updateTelemetry);
-//	connect(telemetry_w, &QAction::triggered, this, &MainWindow::showTelemetryWindow);
+	connect(pl, &PowerLimit::setForce, udpHolder, &UdpHolder::setValueInDatagram);
+	connect(usbHolder, &USBHolder::joystickData, udpHolder, &UdpHolder::setValueInDatagram);
+	connect(telemetry_w, &QAction::triggered, this, &MainWindow::showTelemetryWindow);
 //	connect(udpHolder, SIGNAL(dataReceived(float)), this, SLOT(udpDataReceived(float)));
 
 

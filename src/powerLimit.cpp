@@ -38,7 +38,7 @@ PowerLimit::PowerLimit(QWidget *parent) : QWidget{parent}
 //		connect(bttns[i], &QPushButton::clicked, this, func[i]);
 	}
 	QTextStream out{stdout};
-	out << "i want to fuck my girl, no to do stupid buttons, gui sucks" << Qt::endl;
+//	out << "i want to fuck my girl, no to do stupid buttons, gui sucks" << Qt::endl;
 	connect(bttns[0], &QPushButton::clicked, this, &PowerLimit::setSliderValue_A);
 	connect(bttns[1], &QPushButton::clicked, this, &PowerLimit::setSliderValue_B);
 	connect(bttns[2], &QPushButton::clicked, this, &PowerLimit::setSliderValue_C);
@@ -65,10 +65,18 @@ PowerLimit::PowerLimit(QWidget *parent) : QWidget{parent}
 	vbox->addWidget(cunt);
 	setLayout(vbox);
 
-	connect(qs, &QSlider::valueChanged, dig, static_cast<void(QLabel::*)(int)>(&QLabel::setNum));
+//	connect(qs, &QSlider::valueChanged, dig, static_cast<void(QLabel::*)(int)>(&QLabel::setNum));
+	connect(qs, &QSlider::valueChanged, this, &PowerLimit::setLabel);
 
 
-
+}
+void PowerLimit::setLabel()
+{
+	dig->setText(QString::number(qs->value()));
+	QByteArray force;
+	force.resize(1);
+	force[0] = uint8_t(qs->value());
+	emit setForce(force, 2);
 }
 void PowerLimit::setSliderValue_A()
 {

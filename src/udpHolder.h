@@ -22,6 +22,8 @@ signals:
 private slots:
 	void readPendingDatagrams();
 	void writePendingDatagram();
+public slots:
+	void setValueInDatagram(const QByteArray &, uint8_t);
 	 
 private:
 	QUdpSocket *socket;

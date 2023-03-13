@@ -19,6 +19,9 @@ private slots:
 	void setSliderValue_B();
 	void setSliderValue_C();
 	void setSliderValue_D();
+	void setLabel();
 public:
 	PowerLimit(QWidget *parent = 0);
+signals:
+	void setForce(const QByteArray &, uint8_t);
 };

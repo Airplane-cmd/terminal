@@ -8,7 +8,11 @@ UdpHolder::UdpHolder(QObject *parent) : QObject{parent}
 //	socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
 //	socket->setReadBufferSize(0);
 //	datagram = new QByteArray;
+
 	datagram.resize(40);
+	datagram[0] = 0;
+	datagram[1] = 230;
+	for(uint8_t i = 2; i < datagram.size(); ++i)	datagram[i] = 0;
 
 	QTimer *timer = new QTimer(this);
 	socket->bind(QHostAddress::Any, 2065);
@@ -29,6 +33,11 @@ UdpHolder::~UdpHolder()
 	qDebug() << "dead" << Qt::endl;
 	delete socket;
 	delete socket_T;
+}
+void UdpHolder::setValueInDatagram(const QByteArray &data, uint8_t index)
+{
+	std::memcpy(datagram.data() + index, data.constData(), data.size());	
+//	datagram[
 }
 uint16_t UdpHolder::calculateCRC(const QByteArray &dataR)
 {
@@ -108,12 +117,10 @@ void UdpHolder::readPendingDatagrams()
 }
 void UdpHolder::writePendingDatagram()
 {
-	datagram[0] = 0;
-	datagram[1] = 230;
-	datagram[2] = uint8_t(5);
-	datagram[3] = uint8_t(5);
-	datagram[4] = uint8_t(5);
-	datagram[5] = uint8_t(5);
+//	datagram[2] = uint8_t(10);
+//	datagram[3] = uint8_t(10);
+//	datagram[4] = uint8_t(10);
+//	datagram[5] = uint8_t(10);
 
 	QHostAddress receiver("192.168.90.1");
 

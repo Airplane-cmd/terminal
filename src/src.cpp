@@ -13,7 +13,8 @@ int main(int argc, char **argv)
 	QScreen *scr = QGuiApplication::primaryScreen();
 //	UdpHolder holder;
 	MainWindow wndw;
-	wndw.resize(scr->geometry().width(), scr->geometry().height());
+	wndw.resize(scr->geometry().width()/2, scr->geometry().height());
+	wndw.move(0, 0);
 	wndw.show();
 //	PowerLimit wndw1;
 //	wndw1.show();

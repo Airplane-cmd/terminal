@@ -15,6 +15,7 @@
 #include "powerLimit.h"
 #include "algorithms.h"
 #include "udpHolder.h"
+#include "usbHolder.h"
 
 class MainWindow : public QMainWindow
 {
@@ -67,6 +68,7 @@ private:
 	static QString curLog;
 	
 	UdpHolder *udpHolder;
+	USBHolder *usbHolder;
 
 	void createMenus();
 	void initActions();
