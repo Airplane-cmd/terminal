@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	
 	createMenus();
 	setCentralWidget(central);
-
+	
 	udpHolder = new UdpHolder(this);
 	usbHolder = new USBHolder(this);
 //	connect(this, &MainWindow::updateTelemetry, t, &Telemetry::updateTelemetry);

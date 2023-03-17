@@ -106,7 +106,7 @@ void UdpHolder::readPendingDatagrams()
 		cntnr.push_back(getInt(buffer, "leak"));	
 		cntnr.push_back(getInt(buffer, "err"));
 
-		printTelemetry(buffer);
+//		printTelemetry(buffer);
 //		printDatagram(buffer);
 		uint16_t crc = calculateCRC(buffer);
 		//fkvjnb jfnbj
