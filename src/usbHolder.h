@@ -15,6 +15,7 @@ public:
 	~USBHolder();
 
 private:
+	uint8_t m_powerLimit;
 	libusb_device_handle* m_device;
 	QTimer* m_timer;
 	QByteArray m_data;
@@ -25,6 +26,8 @@ private:
 	void readUSBData();
 private slots:
     	void readJoystickData();
+public slots:
+//	void setPowerLimit();
 
 signals:
     void joystickData(const QByteArray &, uint8_t);

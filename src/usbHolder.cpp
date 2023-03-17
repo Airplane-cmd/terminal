@@ -5,6 +5,8 @@
 #include <chrono>
 #include <future>
 
+#include <cmath>
+
 #include "usbHolder.h"
 
 #define JOYSTICK_VENDOR_ID   0x44f
@@ -12,6 +14,7 @@
 
 USBHolder::USBHolder(QObject *parent) : QObject(parent)
 {
+	m_powerLimit = 50;
 	m_device = 0;
 	m_timer = new QTimer(this);
 
@@ -39,7 +42,7 @@ USBHolder::~USBHolder()
 
 void USBHolder::readJoystickData()
 {
-	m_data.resize(1);
+	m_data.resize(4);
 	int bytesTransferred = 0;
 //	qDebug() << "here?"
 	int result = 0;
@@ -56,9 +59,16 @@ void USBHolder::readJoystickData()
 	if (result == LIBUSB_SUCCESS && bytesTransferred == sizeof(data_ch))
 	{
 		qDebug() << "here" << Qt::endl;
-		for(int i = 0; i < 22; ++i)	qDebug() << i << ": " << data_ch[i] << Qt::endl; 
-       		m_data[0] = uint8_t(data_ch[7] - 128);
-		emit joystickData(m_data, 5);
+		auto fj = {[&](){return int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6]));}};
+//		for(int i = 0; i < bytesTransferred; ++i)	qDebug() << i << ": " << data_ch[i] << Qt::endl;
+		m_data[0] = uint8_t(float(int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6])) - 512) / 512 * 100);
+		m_data[1] = uint8_t(-1 * float(int16_t(256 - data_ch[3] + 256 * (3 - data_ch[4])) - 512) / 512 * 100);
+		m_data[2] = uint8_t(float(data_ch[8] - 128) / 128 * 100);
+		m_data[3] = uint8_t(float((256 - data_ch[7]) - 128) / 128 * 100);
+		for(int i = 0; i < 4; ++i)	qDebug() << i << ": " << int8_t(m_data[i]) << Qt::endl;
+		qDebug() << "value: " << float(int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6])) - 512) / 512 * 100 << Qt::endl; 
+
+		emit joystickData(m_data, 2);
        	}	
 	else
 	{
