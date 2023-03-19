@@ -4,6 +4,7 @@
 #include <QString> 
 #include <vector>
 #include <QTextStream>
+#include <QDebug>
 
 #include <cmath>
 
@@ -55,6 +56,17 @@ Telemetry::Telemetry(QWidget *parent) : QWidget(parent)
 //	setLayout(vbox);
 
 }
+Telemetry::~Telemetry()
+{
+	qDebug() << "Telemetry widget destucted" << Qt::endl;
+	delete depth_l;
+	delete velocity_l;
+	delete row_l;
+	delete pitch_l;
+	delete yaw_l;
+
+
+}
 void Telemetry::updateTelemetry(std::array<float, 13> floats, std::vector<std::vector<bool>> cntnr)
 {
 //	qDebug() << "called" << Qt::endl;
@@ -67,8 +79,4 @@ void Telemetry::updateTelemetry(std::array<float, 13> floats, std::vector<std::v
 	velocity_l->setText(QString("Velocity:%1").arg(sqrt(pow(floats[8], 2) + pow(floats[9], 2))));
 	update();
 }
-Telemetry::~Telemetry()
-{
-	QTextStream out{stdout};
-	out << "Telemetry widget destroyed;" << Qt::endl;
-}
+

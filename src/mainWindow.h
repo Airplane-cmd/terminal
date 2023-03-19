@@ -23,6 +23,7 @@ Q_OBJECT
 friend class LogsHolder;
 public:
 	MainWindow(QWidget *parent = 0);
+	~MainWindow();
 protected:
 //	void timerEvent(QTimerEvent *);
 //	void keyPressEvent(QKeyEvent *);

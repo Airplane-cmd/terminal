@@ -70,13 +70,18 @@ PowerLimit::PowerLimit(QWidget *parent) : QWidget{parent}
 
 
 }
+PowerLimit::~PowerLimit()
+{
+	delete qs;
+	delete dig;
+}
 void PowerLimit::setLabel()
 {
 	dig->setText(QString::number(qs->value()));
-	QByteArray force;
-	force.resize(1);
-	force[0] = uint8_t(qs->value());
-	emit setForce(force, 2);
+//	QByteArray force;
+//	force.resize(1);
+//	force[0] = uint8_t(qs->value());
+	emit setForce(qs->value());
 }
 void PowerLimit::setSliderValue_A()
 {

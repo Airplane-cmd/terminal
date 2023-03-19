@@ -25,12 +25,45 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 //	connect(this, &MainWindow::updateTelemetry, t, &Telemetry::updateTelemetry);
 //	connect(udpHolder, SIGNAL(dataReceived(const std::array<float, 13> , const std::vector<std::vector<bool>> )), t, SLOT(updateTelemetry(const std::array<float, 13> , const std::vector<std::vector<bool>> )));//crazy 
 	connect(udpHolder, &UdpHolder::dataReceived, t, &Telemetry::updateTelemetry);
-	connect(pl, &PowerLimit::setForce, udpHolder, &UdpHolder::setValueInDatagram);
+	connect(pl, &PowerLimit::setForce, usbHolder, &USBHolder::setPowerLimit);
 	connect(usbHolder, &USBHolder::joystickData, udpHolder, &UdpHolder::setValueInDatagram);
 	connect(telemetry_w, &QAction::triggered, this, &MainWindow::showTelemetryWindow);
 //	connect(udpHolder, SIGNAL(dataReceived(float)), this, SLOT(udpDataReceived(float)));
 
 
+}
+MainWindow::~MainWindow()
+{
+	delete hardware;
+	delete devices;
+	delete cameras;
+	delete startRec;
+	delete stopRec;
+	delete controllers;
+	delete settings;
+	delete drivers;
+	delete calibrateDrivers;
+	delete widgets;
+	delete telemetry;
+	delete logs;
+	delete forceLimits;
+	delete algorithms;
+	delete data;
+	delete windows;
+	delete telemetry_w;
+	delete logs_w;
+	delete forceLimits_w;
+	delete algorithms_w;
+	delete data_w;	
+	delete grid;
+	delete t;
+	delete t_wndw;
+	delete lh;
+	delete lh_wndw;
+	delete pl;
+	delete alg;
+	delete usbHolder;
+	delete udpHolder;
 }
 void MainWindow::udpDataReceived(float roll)
 {

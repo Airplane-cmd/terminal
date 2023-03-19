@@ -15,7 +15,7 @@ class UdpHolder : public QObject
 Q_OBJECT
 public:
 	UdpHolder(QObject *parent = 0);
-	virtual ~UdpHolder();
+	~UdpHolder();
 
 signals:
 	void dataReceived(std::array<float, 13>, std::vector<std::vector<bool>>);

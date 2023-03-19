@@ -22,6 +22,7 @@ private slots:
 	void setLabel();
 public:
 	PowerLimit(QWidget *parent = 0);
+	~PowerLimit();
 signals:
-	void setForce(const QByteArray &, uint8_t);
+	void setForce(uint8_t);
 };
