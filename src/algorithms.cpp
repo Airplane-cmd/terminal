@@ -1,51 +1,47 @@
 #include <QWidget>
-#include <QGridLayout>
+#include <QVBoxLayout>
 #include <QAction>
 #include <QTextStream>
+#include <QDebug>
 
 #include <QAction>
 
 #include "algorithms.h"
 
-Algorithms::Algorithms(QWidget *parent) : QWidget{parent}
+Algorithms::Algorithms(QWidget *parent) : QWidget(parent)
 {
-	grid = new QGridLayout();
-	initButtons();
-	int width(0);
-	int col(0), row(0);
-	for(int i = 0; i < bttns.size(); ++i)
-	{
-		width += bttns[i]->size().width();
-		if(width > 400)
-		{
-			col = 0;
-			++row;
-			width = 0;
-		}
-		else	col++;
-		bttns[i]->setCheckable(1);
-		bttns[i]->setChecked(0);
-		grid->addWidget(bttns[i], row, col);
-	}
-
-	connect(bttns[0], &QPushButton::clicked, this, &Algorithms::depthControl);
-	
 	QWidget *cntnr = new QWidget(this);
-	cntnr->setLayout(grid);
+	QVBoxLayout *vbox = new QVBoxLayout();
+	initButtons();
+	for(int i = 0; i < m_bttns_vctr.size(); ++i)	vbox->addWidget(m_bttns_vctr[i]);
+
+//	connect(bttns[0], &QPushButton::clicked, this, &Algorithms::depthControl);
+	
+	cntnr->setLayout(vbox);
+	setLayout(vbox);
 	cntnr->setMaximumWidth(410);
+
+//	qDebug() << "constructor worked" << Qt::endl;
+}
+Algorithms::~Algorithms()
+{
+	for(SpinLayout *obj : m_bttns_vctr)
+	{
+		delete obj;
+	}
 }
 void Algorithms::initButtons()
 {
-	bttns.push_back(new QPushButton{"Depth", this});
-	bttns.push_back(new QPushButton{"Depth", this});
-	bttns.push_back(new QPushButton{"Depth", this});
-	bttns.push_back(new QPushButton{"Depth", this});
+	m_bttns_vctr.push_back(new SpinLayout("Depth", 0, 5, 0, this));
+	m_bttns_vctr.push_back(new SpinLayout("Yaw", -180, 180, 1, this));
+	m_bttns_vctr.push_back(new SpinLayout("Altitude", 0, 5, 1, this));
+	qDebug() << m_bttns_vctr.size() << Qt::endl;
 }
 void Algorithms::depthControl()
 {
 	QTextStream out{stdout};
-	if(bttns[0]->isChecked())	out << "Depth control activated" << Qt::endl;
-	else				out << "Depth control disactivated" << Qt::endl;
+//	if(bttns[0]->isChecked())	out << "Depth control activated" << Qt::endl;
+//	else				out << "Depth control disactivated" << Qt::endl;
 }
 
 

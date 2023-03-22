@@ -5,6 +5,7 @@
 #include "telemetry.h"
 #include "logs.h"
 #include "powerLimit.h"
+#include "spinLayout.h"
 //#include "udpHolder.h"
 int main(int argc, char **argv)
 {
@@ -16,6 +17,8 @@ int main(int argc, char **argv)
 	wndw.resize(scr->geometry().width()/2, scr->geometry().height());
 	wndw.move(0, 0);
 	wndw.show();
+//	SpinLayout wndw1("depth", 0, 5, 1);
+//	wndw1.show();
 //	PowerLimit wndw1;
 //	wndw1.show();
 //	LogsHolder::initLogFile();

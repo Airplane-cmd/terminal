@@ -31,8 +31,8 @@ private:
 	void closeDevice();
 	void readUSBData();
 
-//	std::atomic<bool> m_stopThread{0};
-	std::thread m_thread;
+	std::atomic<bool> m_stopThread{0};
+	std::thread *m_thread;
 private slots:
     	void readJoystickData();
 public slots:

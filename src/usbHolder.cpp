@@ -17,7 +17,7 @@ USBHolder::USBHolder(QObject *parent) : QObject(parent)
 	m_powerLimit = 50;
 	m_device = 0;
 	m_timer = new QTimer(this);
-//	m_thread = std::thread(&USBHolder::readJoystickData, this);
+//	m_thread = new std::thread(&USBHolder::readJoystickData, this);
 	connect(m_timer, &QTimer::timeout, this, &USBHolder::readJoystickData);
 
 	if(openDevice())
@@ -37,11 +37,12 @@ USBHolder::USBHolder(QObject *parent) : QObject(parent)
 }
 USBHolder::~USBHolder()
 {
-//	m_stopThread = 1;
+	m_stopThread = 1;
 	m_timer->stop();
-//	m_thread.join();
+//	m_thread->join();
 	closeDevice();
 //	delete m_device;
+//	delete m_thread;
 	delete m_timer;
 
 }
@@ -62,15 +63,16 @@ void USBHolder::readJoystickData()
 	m_data.resize(4);
 	int bytesTransferred = 0;
 	int result = 0;
-//	while(!m_stopThread)
-//	{
+//	result = libusb_interrupt_transfer(m_device, 0x81, data_ch, sizeof(data_ch), &bytesTransferred, 0);
+	while(!m_stopThread)
+	{
 		auto future = std::async(std::launch::async, [&]()
 		{
 			result = libusb_interrupt_transfer(m_device, 0x81, data_ch, sizeof(data_ch), &bytesTransferred, 0);
 		});
 		while(future.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
 		{
-		QCoreApplication::processEvents();
+			QCoreApplication::processEvents();
 		}
 //		qDebug() << "libusb_interrupt_transter returns " << result << Qt::endl;	
 //		qDebug() << "Size: " << bytesTransferred << Qt::endl;
@@ -94,7 +96,7 @@ void USBHolder::readJoystickData()
         		closeDevice();
 		      	openDevice();
 		}
-//	}
+	}
 }
 void USBHolder::readUSBData()
 {
