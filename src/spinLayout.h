@@ -14,6 +14,10 @@ Q_OBJECT
 public:
 	SpinLayout(QString, float beginRange = 0, float endRange = 100, float startValue = 0, QWidget *parent = 0);
 	~SpinLayout();
+	bool getState();
+	float getValue();
+	void setValue(float);
+
 private:
 	bool m_state_b;
 	bool m_state_d;
@@ -23,12 +27,13 @@ private:
 	QPushButton *m_button_ptr;
 	QPushButton *m_getBttn_ptr;
 	QDoubleSpinBox *m_dsb_ptr;
-	void setValue(float);
-	float getValue();
 private slots:
-	void emitSignalFromButton();
+	void emitActivationSignal();
+	void emitSettingSignal();
 signals:
-	void pressedButton(bool);
+	void activationButtonPressed(bool);
+	void settingButtonPressed(bool);
+
 };
 
 #endif

@@ -20,13 +20,15 @@ SpinLayout::SpinLayout(QString name, float beginRange, float endRange, float sta
 	hbox_ptr->addWidget(m_button_ptr);
 	hbox_ptr->addWidget(m_getBttn_ptr);
 
-	connect(m_button_ptr, &QPushButton::clicked, this, &SpinLayout::emitSignalFromButton);
-
+	connect(m_button_ptr, &QPushButton::clicked, this, &SpinLayout::emitActivationSignal);
+	connect(m_getBttn_ptr, &QPushButton::clicked, this, &SpinLayout::emitSettingSignal);
 	QWidget *cntnr = new QWidget(this);
 	cntnr->setLayout(hbox_ptr);
 	cntnr->setMinimumWidth(400);
 	cntnr->setMinimumHeight(40);
-	
+
+//	delete cntnr;
+//	delete hbox_ptr;
 }
 SpinLayout::~SpinLayout()
 {
@@ -42,8 +44,17 @@ float SpinLayout::getValue()
 {
 	return m_dsb_ptr->value();
 }
-void SpinLayout::emitSignalFromButton()
+bool SpinLayout::getState()
+{
+	return m_state_d;
+}
+void SpinLayout::emitActivationSignal()
 {
 	m_state_b = !m_state_b;
-	emit pressedButton(m_state_b);
+	emit activationButtonPressed(m_state_b);
+}
+void SpinLayout::emitSettingSignal()
+{
+	m_state_d = !m_state_d;
+	emit settingButtonPressed(m_state_d);
 }

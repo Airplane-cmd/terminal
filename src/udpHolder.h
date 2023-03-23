@@ -24,7 +24,8 @@ private slots:
 	void writePendingDatagram();
 public slots:
 	void setValueInDatagram(const QByteArray &, uint8_t);
-	 
+	void setDepthControl(bool, float);	
+	void setYawControl(bool, float);
 private:
 	QUdpSocket *socket;
 	QByteArray datagram;
@@ -43,6 +44,8 @@ private:
 	void getStat(const QByteArray &arr);
 	void getLeaks(const QByteArray &arr);
 	void getErrors(const QByteArray &arr);
+	void m_setValueInDatagram(const QByteArray &, uint8_t);
+	void setBitInDatagram(bool, uint8_t, char);
 	float getFloat(const QByteArray &arr, const std::string &arg);
 	std::vector<bool> getInt(const QByteArray &arr, const std::string &arg);
 

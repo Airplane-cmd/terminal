@@ -1,4 +1,4 @@
-#pragma once
+
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QString> 
@@ -78,5 +78,7 @@ void Telemetry::updateTelemetry(std::array<float, 13> floats, std::vector<std::v
 	yaw_l->setText(QString     ("Yaw:     %1").arg(floats[2]));
 	velocity_l->setText(QString("Velocity:%1").arg(sqrt(pow(floats[8], 2) + pow(floats[9], 2))));
 	update();
+	emit sendDepth(floats[5]);
+	emit sendYaw(floats[2]);
 }
 

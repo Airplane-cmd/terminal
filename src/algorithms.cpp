@@ -15,7 +15,8 @@ Algorithms::Algorithms(QWidget *parent) : QWidget(parent)
 	initButtons();
 	for(int i = 0; i < m_bttns_vctr.size(); ++i)	vbox->addWidget(m_bttns_vctr[i]);
 
-//	connect(bttns[0], &QPushButton::clicked, this, &Algorithms::depthControl);
+	connect(m_bttns_vctr[0], &SpinLayout::activationButtonPressed, this, &Algorithms::emitDepthControlSignal);
+	connect(m_bttns_vctr[1], &SpinLayout::activationButtonPressed, this, &Algorithms::emitYawControlSignal);
 	
 	cntnr->setLayout(vbox);
 	setLayout(vbox);
@@ -34,14 +35,26 @@ void Algorithms::initButtons()
 {
 	m_bttns_vctr.push_back(new SpinLayout("Depth", 0, 5, 0, this));
 	m_bttns_vctr.push_back(new SpinLayout("Yaw", -180, 180, 1, this));
-	m_bttns_vctr.push_back(new SpinLayout("Altitude", 0, 5, 1, this));
-	qDebug() << m_bttns_vctr.size() << Qt::endl;
+//	m_bttns_vctr.push_back(new SpinLayout("Altitude", 0, 5, 1, this));
+//	qDebug() << m_bttns_vctr.size() << Qt::endl;
 }
-void Algorithms::depthControl()
+void Algorithms::setDepth(float data)
 {
-	QTextStream out{stdout};
-//	if(bttns[0]->isChecked())	out << "Depth control activated" << Qt::endl;
-//	else				out << "Depth control disactivated" << Qt::endl;
+	if(m_bttns_vctr[0]->getState())	m_bttns_vctr[0]->setValue(data);
+}
+void Algorithms::setYaw(float data)
+{
+	if(m_bttns_vctr[1]->getState())	m_bttns_vctr[1]->setValue(data);
+}
+void Algorithms::emitDepthControlSignal(bool state)
+{
+	float depth = (m_bttns_vctr[0])->getValue();
+	emit depthControl(state, depth);
+}
+void Algorithms::emitYawControlSignal(bool state)
+{
+	
+	emit yawControl(state, m_bttns_vctr[1]->getValue());
 }
 
 

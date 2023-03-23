@@ -28,6 +28,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	connect(pl, &PowerLimit::setForce, usbHolder, &USBHolder::setPowerLimit);
 	connect(usbHolder, &USBHolder::joystickData, udpHolder, &UdpHolder::setValueInDatagram);
 	connect(telemetry_w, &QAction::triggered, this, &MainWindow::showTelemetryWindow);
+	connect(t, &Telemetry::sendDepth, alg, &Algorithms::setDepth);
+	connect(t, &Telemetry::sendYaw, alg, &Algorithms::setYaw);
+	connect(alg, &Algorithms::depthControl, udpHolder, &UdpHolder::setDepthControl);
+	connect(alg, &Algorithms::yawControl, udpHolder, &UdpHolder::setYawControl);
 //	connect(udpHolder, SIGNAL(dataReceived(float)), this, SLOT(udpDataReceived(float)));
 
 

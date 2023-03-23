@@ -17,8 +17,13 @@ private:
 	std::vector<SpinLayout *> m_bttns_vctr; 	
 	void initButtons();
 	
-private slots:
-	void depthControl();
-
+public slots:
+	void setDepth(float);
+	void setYaw(float);
+	void emitDepthControlSignal(bool);
+	void emitYawControlSignal(bool);
+signals:
+	void depthControl(bool, float);
+	void yawControl(bool, float);
 };
 #endif

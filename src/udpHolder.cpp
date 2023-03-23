@@ -34,7 +34,41 @@ UdpHolder::~UdpHolder()
 	delete socket;
 	delete socket_T;
 }
+void UdpHolder::setDepthControl(bool state, float data)
+{
+	QByteArray data_qbe;
+	data_qbe.resize(4);
+	uint8_t* bytes = reinterpret_cast<uint8_t*>(&data);
+	for(int i = 0; i < 4; ++i)	data_qbe[i] = bytes[4 - i];
+	m_setValueInDatagram(data_qbe, 6);
+	setBitInDatagram(state, 4, datagram[26]);
+}
+void UdpHolder::setYawControl(bool state, float data)
+{
+	QByteArray data_qbe;
+	data_qbe.resize(4);
+	uint8_t* bytes = reinterpret_cast<uint8_t*>(&data);
+	for(int i = 0; i < 4; ++i)	data_qbe[i] = bytes[4 - i];
+	m_setValueInDatagram(data_qbe, 14);
+	setBitInDatagram(state, 2, datagram[26]);
+}
+void UdpHolder::setBitInDatagram(bool bit, uint8_t index, char byte)
+{
+	QByteArray cntnr;
+	cntnr.resize(1);
+	
+	uint8_t mask = 1 << index;
+	if(bit)		byte |= mask;
+	else		byte &= ~mask;
+	cntnr[0] = byte;
+	m_setValueInDatagram(cntnr, 26);
+}
 void UdpHolder::setValueInDatagram(const QByteArray &data, uint8_t index)
+{
+	std::memcpy(datagram.data() + index, data.constData(), data.size());	
+//	datagram[
+}
+void UdpHolder::m_setValueInDatagram(const QByteArray &data, uint8_t index)
 {
 	std::memcpy(datagram.data() + index, data.constData(), data.size());	
 //	datagram[
@@ -106,7 +140,7 @@ void UdpHolder::readPendingDatagrams()
 		cntnr.push_back(getInt(buffer, "leak"));	
 		cntnr.push_back(getInt(buffer, "err"));
 
-//		printTelemetry(buffer);
+		printTelemetry(buffer);
 //		printDatagram(buffer);
 		uint16_t crc = calculateCRC(buffer);
 		//fkvjnb jfnbj
