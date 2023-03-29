@@ -6,6 +6,7 @@
 #include <QToolBar>
 #include <QMenu>
 #include <QGridLayout>
+#include <QHBoxLayout>
 #include <QMainWindow>
 #include <vector>
 #include <QString>
@@ -16,6 +17,7 @@
 #include "algorithms.h"
 #include "udpHolder.h"
 #include "usbHolder.h"
+#include "camHolder.h"
 
 class MainWindow : public QMainWindow
 {
@@ -55,6 +57,8 @@ private:
 	std::vector<QAction *> checkBoxes;
 	
 	QGridLayout *grid;
+	QHBoxLayout *hbox;
+	std::vector<QVBoxLayout *> m_vbox_vctr;
 	Telemetry *t;
 	Telemetry *t_wndw;
 
@@ -70,11 +74,11 @@ private:
 	
 	UdpHolder *udpHolder;
 	USBHolder *usbHolder;
-
+	CamHolder *m_player;
 	void createMenus();
 	void initActions();
 	void initWidgetsMenu();
-	void initWidgets(QGridLayout *);
+	void initWidgets(QHBoxLayout *);
 private slots:
 	void showTelemetryWindow();
 	void udpDataReceived(float roll);

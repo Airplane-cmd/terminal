@@ -5,6 +5,12 @@
 #include <QAction>
 #include <QString>
 #include <QTextStream>
+#include <QDebug>
+
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+
+#include <memory>
 
 #include "mainWindow.h"
 
@@ -14,11 +20,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 //	LogsHolder::initLogFile();
 
 	auto central = new QWidget;
-	grid = new QGridLayout(central);
-	initWidgets(grid);
+	setCentralWidget(central);	
+//	grid = new QGridLayout(central);
+	hbox = new QHBoxLayout(central);
+//	grid->setColumnMinimumWidth(0, 0);
+	initWidgets(hbox);
 	
 	createMenus();
-	setCentralWidget(central);
+
 	
 	udpHolder = new UdpHolder(this);
 	usbHolder = new USBHolder(this);
@@ -38,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 }
 MainWindow::~MainWindow()
 {
+	delete m_player;
 	delete hardware;
 	delete devices;
 	delete cameras;
@@ -85,24 +95,54 @@ void MainWindow::showTelemetryWindow()
 	lh->writeInLog("Telemetry window shown");
 		
 }
-void MainWindow::initWidgets(QGridLayout *grid)
+void MainWindow::initWidgets(QHBoxLayout *grid)
 {
+	m_vbox_vctr.push_back(new QVBoxLayout);
+	m_vbox_vctr.push_back(new QVBoxLayout);
 	t = new Telemetry(this);
 	lh = new LogsHolder(this);
 	pl = new PowerLimit(this);
 	alg = new Algorithms(this);	
-
+	m_player = new CamHolder(this);
+//	m_player->resize(1000, 1000);
 	QWidget *empty = new QWidget(this);
+	empty->setMaximumWidth(400);
+//	qDebug() << grid->columnMinimumWidth(1) << Qt::endl;
 //	t1->setStyleSheet("QWidget{background-color:yellow}");	
-	grid->addWidget(t, 0, 0, 1, 1);
-	grid->addWidget(lh, 1, 0, 2, 1);
-	grid->addWidget(pl, 3, 0, 1, 1);
-	grid->addWidget(alg, 4, 0);
-	grid->addWidget(empty, 5, 0, 2, 1);
+	m_vbox_vctr[0]->addWidget(t);//, 0, 0, 1, 1);
+	m_vbox_vctr[0]->addWidget(lh);//, 1, 0, 2, 1);
+	m_vbox_vctr[0]->addWidget(pl);//, 3, 0, 1, 1);
+	m_vbox_vctr[0]->addWidget(alg);//, 4, 0);
+	m_vbox_vctr[0]->addWidget(empty);//, 5, 0, 2, 1);
+	
+	m_vbox_vctr[1]->addWidget(m_player);
+	for(int i = 0; i < m_vbox_vctr[0]->count(); ++i)
+	{
+		QLayoutItem *item = m_vbox_vctr[0]->itemAt(i);
+		QWidget *widget;
+	//	std::shared_ptr<QLayoutItem> item_ptr(item);
+//		std::shared_ptr<QWidget> widget_ptr;
+		if(!item)	continue;
+		else
+		{
+			widget = item->widget();
+//			widget_ptr(widget);
+		}
+		if(!widget)	continue;
+		else
+		{
+			widget->setMaximumWidth(450);
+			widget->setMinimumWidth(450);
+//			widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+		}
+//		delete item;
+//		delete widget;
+	}
 //	grid->addWidget(t2, 1, 0);
 //	grid->addWidget(t3, 1, 1);
 //	grid->addWidget(t4, 0, 2);
-
+	grid->addLayout(m_vbox_vctr[0]);
+	grid->addLayout(m_vbox_vctr[1]);
 }
 void MainWindow::initActions()
 {

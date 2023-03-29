@@ -16,12 +16,13 @@ CamHolder::CamHolder(QWidget *parent) : QWidget(parent)
 {
 	m_index = 0;
 	m_videoLabel_ptr = std::make_shared<QLabel>(this);
-	m_videoLabel_ptr->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+//	m_videoLabel_ptr->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+	m_videoLabel_ptr->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 	m_timer_ptr = new QTimer(this);
 //	m_timer_ptr = std::make_shared<QTimer>(this);
 //	m_streaming_b = 1;
     	connect(m_timer_ptr, &QTimer::timeout, this, &CamHolder::stream);
-	m_timer_ptr->start(1000/24);
+	m_timer_ptr->start(1000/100);
 //	double dWidth = m_capture.get(cv::CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
 //	double dHeight = m_capture.get(cv::CAP_PROP_FRAME_HEIGHT); //get the height of frames of the video
 //    	std::cout << "camera width = " << dWidth << ", height = " << dHeight << std::endl;
