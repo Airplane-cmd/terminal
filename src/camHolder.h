@@ -22,15 +22,29 @@ private:
 	std::shared_ptr<QLabel> m_videoLabel_ptr;
 	QTimer *m_timer_ptr;//std::shared_ptr<QTimer> m_timer_ptr;
 	int m_index = 0;
-	bool m_streaming_b = 0;
+
+	bool m_write_f = 0;
+	bool m_writeInit_f = 0;
+
 	cv::VideoCapture m_capture;
 	cv::Mat m_frame_cv;
 	std::string m_dir;
+	void findPath();
+	void initRec();
+	double m_height_d;
+	double m_width_d;
+	cv::VideoWriter m_videoWriter;
+	double m_framerate_d;
 public:
-	void connect_(int cam = 3);
-private slots:
+	void connect_(int cam = 1);
+public slots:
 	void stream();
-	void stop();
+	void s_stopRec();
+	void s_pauseRec();
+	void s_startRec();
+	void s_setWriteFlag(bool);
+	
+
 
 
 };

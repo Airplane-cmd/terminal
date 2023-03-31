@@ -41,6 +41,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	connect(t, &Telemetry::sendYaw, alg, &Algorithms::setYaw);
 	connect(alg, &Algorithms::depthControl, udpHolder, &UdpHolder::setDepthControl);
 	connect(alg, &Algorithms::yawControl, udpHolder, &UdpHolder::setYawControl);
+	connect(m_recControl_ptr, &RecControl::sig_startRec, m_player, &CamHolder::s_startRec);
+	connect(m_recControl_ptr, &RecControl::sig_pauseRec, m_player, &CamHolder::s_pauseRec);
+	connect(m_recControl_ptr, &RecControl::sig_stopRec, m_player, &CamHolder::s_stopRec);
 //	connect(udpHolder, SIGNAL(dataReceived(float)), this, SLOT(udpDataReceived(float)));
 
 
@@ -104,6 +107,7 @@ void MainWindow::initWidgets(QHBoxLayout *grid)
 	pl = new PowerLimit(this);
 	alg = new Algorithms(this);	
 	m_player = new CamHolder(this);
+	m_recControl_ptr = new RecControl(this);
 //	m_player->resize(1000, 1000);
 	QWidget *empty = new QWidget(this);
 	empty->setMaximumWidth(400);
@@ -113,8 +117,9 @@ void MainWindow::initWidgets(QHBoxLayout *grid)
 	m_vbox_vctr[0]->addWidget(lh);//, 1, 0, 2, 1);
 	m_vbox_vctr[0]->addWidget(pl);//, 3, 0, 1, 1);
 	m_vbox_vctr[0]->addWidget(alg);//, 4, 0);
+	m_vbox_vctr[0]->addWidget(m_recControl_ptr);
 	m_vbox_vctr[0]->addWidget(empty);//, 5, 0, 2, 1);
-	
+
 	m_vbox_vctr[1]->addWidget(m_player);
 	for(int i = 0; i < m_vbox_vctr[0]->count(); ++i)
 	{

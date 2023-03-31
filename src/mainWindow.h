@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
 #include <QWidget>
 //#include <QStringStream>
 #include <QKeyEvent>
@@ -18,6 +19,7 @@
 #include "udpHolder.h"
 #include "usbHolder.h"
 #include "camHolder.h"
+#include "recControl.h"
 
 class MainWindow : public QMainWindow
 {
@@ -75,6 +77,8 @@ private:
 	UdpHolder *udpHolder;
 	USBHolder *usbHolder;
 	CamHolder *m_player;
+	RecControl *m_recControl_ptr;
+
 	void createMenus();
 	void initActions();
 	void initWidgetsMenu();
@@ -83,3 +87,4 @@ private slots:
 	void showTelemetryWindow();
 	void udpDataReceived(float roll);
 };
+#endif

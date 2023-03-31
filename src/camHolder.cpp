@@ -1,12 +1,16 @@
 #include <QCoreApplication>
-
+#include <QDebug>
+//#include <QString>
+//#include <QDate>
 
 #include "opencv2/opencv.hpp"
 #include <iostream>
 #include <chrono>
 #include <filesystem>
 #include <ctime>
-
+#include <string>
+#include <iomanip>
+#include <sstream>
 //#include <thread>
 //#include <chrono>
 //#include <future>
@@ -15,6 +19,9 @@
 CamHolder::CamHolder(QWidget *parent) : QWidget(parent)
 {
 	m_index = 0;
+	m_write_f = 0;
+	m_writeInit_f = 0;
+	m_framerate_d = 1000 / 100;
 	m_videoLabel_ptr = std::make_shared<QLabel>(this);
 //	m_videoLabel_ptr->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 	m_videoLabel_ptr->setAlignment(Qt::AlignLeft | Qt::AlignTop);
@@ -22,56 +29,128 @@ CamHolder::CamHolder(QWidget *parent) : QWidget(parent)
 //	m_timer_ptr = std::make_shared<QTimer>(this);
 //	m_streaming_b = 1;
     	connect(m_timer_ptr, &QTimer::timeout, this, &CamHolder::stream);
-	m_timer_ptr->start(1000/100);
-//	double dWidth = m_capture.get(cv::CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
-//	double dHeight = m_capture.get(cv::CAP_PROP_FRAME_HEIGHT); //get the height of frames of the video
+	m_timer_ptr->start(m_framerate_d);//works?
+	m_width_d = m_capture.get(cv::CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
+	m_height_d = m_capture.get(cv::CAP_PROP_FRAME_HEIGHT);
+	std::cout << m_height_d << " " << m_width_d << std::endl;
+//get the height of frames of the video
 //    	std::cout << "camera width = " << dWidth << ", height = " << dHeight << std::endl;
 //	if (!m_capture.isOpened()) 	std::cout << "cannot open camera" << std::endl;
-	m_dir = "~/WS/qt/USBCamera/logs";//argv[1];
+	m_dir = "../data/video/";//argv[1];
+	findPath();
 }
 void CamHolder::connect_(int cam)
 {
 	std::string camPath = "/dev/video" + std::to_string(cam);
 	std::cout << "connecting..." << std::endl;
 	m_capture.open(camPath);
-	m_capture.set(cv::CAP_PROP_FRAME_WIDTH, 1920);
-	m_capture.set(cv::CAP_PROP_FRAME_HEIGHT, 1080);
+	m_capture.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+	m_capture.set(cv::CAP_PROP_FRAME_HEIGHT, 480);//int(m_height_d));
+}
+void CamHolder::findPath()
+{
+//	std::string logsFolder = "../data/video";
+	if(std::filesystem::exists(m_dir))		qDebug() << "path exists" << Qt::endl; 
+	else
+	{
+		qDebug() << "path is anawailable" << Qt::endl;
+		std::filesystem::create_directory(m_dir);
+	}
+		
+
+}
+void CamHolder::s_startRec()
+{
+	if(m_write_f)	return;
+	if(!m_writeInit_f)	initRec();
+	m_write_f = 1;
+	m_writeInit_f = 1;
+}
+void CamHolder::s_stopRec()
+{
+	if(!(m_write_f || m_writeInit_f))	return;
+	m_writeInit_f = 0;
+	m_write_f = 0;
+	m_videoWriter.release();
+}
+void CamHolder::s_pauseRec()
+{
+	if(!(m_write_f || m_writeInit_f))
+	m_write_f = 0;
+}
+void CamHolder::s_setWriteFlag(bool flag)
+{
+	m_write_f = flag;
+	if(!m_writeInit_f)
+	{
+		initRec();
+		m_writeInit_f = 1;
+	}
+}
+void CamHolder::initRec()
+{
+	auto now = std::chrono::system_clock::now();
+	std::time_t date = std::chrono::system_clock::to_time_t(now);
+	std::stringstream ss;
+	ss << std::put_time(std::localtime(&date), "%d_%m_%Y");
+	std::string currentDate = ss.str();
+
+	int indexMax = 0;	
+	int index_l = 0;
+	int filesCounter = 0;
+	int index = 0;
+	std::string filename;
+	for(const auto &fileInfo : std::filesystem::directory_iterator(m_dir))
+	{
+		++filesCounter;
+		int indexS = 0;
+ 
+		filename = fileInfo.path().filename().string();
+		if(filename.substr(0, 9) != currentDate)	continue;
+		for(uint8_t i = filename.size() - 1; i > 0; --i)
+		{
+			if(filename[i] == '_')
+			{
+				indexS = i;
+				break;
+			}
+		}
+		index_l = std::stoi(filename.substr(indexS + 1, filename.size() - 1));
+		if(index_l > indexMax)	indexMax = index_l;
+	}
+	if(filesCounter == 0)	index = 0;
+	else 			index = indexMax + 1;
+	int fourcc = cv::VideoWriter::fourcc('m', 'p', '4', 'v');
+	cv::Size frameRes{int(m_width_d), int(m_height_d)};
+	m_videoWriter = cv::VideoWriter(std::string(m_dir + currentDate + '_' + std::to_string(index) + ".mp4"), fourcc, int(m_framerate_d), frameRes);//works?
+	
 }
 void CamHolder::stream()
 {
-//	int m_index = 0;
 	bool readState = 0;
+	m_width_d = m_capture.get(cv::CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
+	m_height_d = m_capture.get(cv::CAP_PROP_FRAME_HEIGHT);
 
-//	cv::VideoCapture capture;
-//    	while(m_streaming_b)
-//   	{
-//		auto future = std::async(std::launch::async, [&]()
-//		{
 	readState = m_capture.read(m_frame_cv); // read a new frame from video 
-//		});
-//		while(future.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
-//		{
-//			QCoreApplication::processEvents();
-//		}
-//		std::cout << "State: " << readState << std::endl;
 	if(!readState) 
         {
 		std::cout << "Video camera is disconnected" << std::endl;
 		if(std::filesystem::exists("/dev/video2"))
 		{
 			std::cout << "Video2 found" << std::endl;
-			connect_(0);
+			connect_(2);
 		}
 		else if(std::filesystem::exists("/dev/video3"))
 		{
 			std::cout << "Video3 found" << std::endl;
-			connect_(1);
+			connect_(3);
 		}
 		return;
 	}
 //	cv::imshow("video", m_frame_cv);
 	std::string path = m_dir + std::to_string(m_index) + ".jpg";
 //	cv::imwrite(path, m_frame_cv);
+	if(m_write_f)	m_videoWriter.write(m_frame_cv);
         m_index++;
 	QImage img(m_frame_cv.data, m_frame_cv.cols, m_frame_cv.rows, m_frame_cv.step, QImage::Format_BGR888);
 	m_videoLabel_ptr->setPixmap(QPixmap::fromImage(img));
@@ -85,8 +164,4 @@ void CamHolder::stream()
 //	 		break;
 //        	}
 
-void CamHolder::stop()
-{
-	m_streaming_b = 0;
-}
 
