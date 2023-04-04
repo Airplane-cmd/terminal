@@ -75,7 +75,7 @@ void CamHolder::s_stopRec()
 }
 void CamHolder::s_pauseRec()
 {
-	if(!(m_write_f || m_writeInit_f))
+	if(m_write_f && m_writeInit_f)
 	m_write_f = 0;
 }
 void CamHolder::s_setWriteFlag(bool flag)
@@ -89,6 +89,7 @@ void CamHolder::s_setWriteFlag(bool flag)
 }
 void CamHolder::initRec()
 {
+	std::cout << "function called" << std::endl;
 	auto now = std::chrono::system_clock::now();
 	std::time_t date = std::chrono::system_clock::to_time_t(now);
 	std::stringstream ss;
@@ -100,13 +101,16 @@ void CamHolder::initRec()
 	int filesCounter = 0;
 	int index = 0;
 	std::string filename;
+	int i = 0;
 	for(const auto &fileInfo : std::filesystem::directory_iterator(m_dir))
 	{
-		++filesCounter;
+
 		int indexS = 0;
  
 		filename = fileInfo.path().filename().string();
-		if(filename.substr(0, 9) != currentDate)	continue;
+		std::cout << filename << "  ";// << std::endl;//db
+		std::cout << filename.substr(0, 10) << std::endl;
+		if(filename.substr(0, 10) != currentDate)	continue;
 		for(uint8_t i = filename.size() - 1; i > 0; --i)
 		{
 			if(filename[i] == '_')
@@ -115,8 +119,11 @@ void CamHolder::initRec()
 				break;
 			}
 		}
+		std::cout << i << " string index: " <<  std::stoi(filename.substr(indexS + 1, filename.size() - 1)) << std::endl;
 		index_l = std::stoi(filename.substr(indexS + 1, filename.size() - 1));
+		std::cout << index_l << " | " << std::endl;
 		if(index_l > indexMax)	indexMax = index_l;
+		++filesCounter;
 	}
 	if(filesCounter == 0)	index = 0;
 	else 			index = indexMax + 1;
@@ -127,6 +134,7 @@ void CamHolder::initRec()
 }
 void CamHolder::stream()
 {
+	std::cout << "Write state: " << m_write_f << std::endl; 
 	bool readState = 0;
 	m_width_d = m_capture.get(cv::CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
 	m_height_d = m_capture.get(cv::CAP_PROP_FRAME_HEIGHT);
@@ -134,7 +142,7 @@ void CamHolder::stream()
 	readState = m_capture.read(m_frame_cv); // read a new frame from video 
 	if(!readState) 
         {
-		std::cout << "Video camera is disconnected" << std::endl;
+//		std::cout << "Video camera is disconnected" << std::endl;
 		if(std::filesystem::exists("/dev/video2"))
 		{
 			std::cout << "Video2 found" << std::endl;
@@ -156,12 +164,3 @@ void CamHolder::stream()
 	m_videoLabel_ptr->setPixmap(QPixmap::fromImage(img));
 	m_videoLabel_ptr->adjustSize();
 }
- 
-//	        if (cv::waitKey(10) == 27)
-//	      	{
-//			std::cout << "Esc key is pressed by user. Stoppig the video" << std::endl;
-//			
-//	 		break;
-//        	}
-
-

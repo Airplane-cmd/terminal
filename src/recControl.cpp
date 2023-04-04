@@ -1,3 +1,4 @@
+#include <QDebug>
 #include "recControl.h"
 
 RecControl::RecControl(QWidget *parent) : QWidget(parent)
@@ -25,14 +26,17 @@ RecControl::~RecControl()
 }
 void RecControl::s_emitStart()
 {
+	qDebug() << "Start recording signal emited" << Qt::endl;
 	emit sig_startRec();
 }
 void RecControl::s_emitPause()
 {
+	qDebug() << "Pause recording signal emited" << Qt::endl;
 	emit sig_pauseRec();
 }
 void RecControl::s_emitStop()
 {
+	qDebug() << "Stop recording signal emited" << Qt::endl;
 	emit sig_stopRec();
 }
 
