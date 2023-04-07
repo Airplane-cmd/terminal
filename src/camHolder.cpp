@@ -11,9 +11,9 @@
 #include <string>
 #include <iomanip>
 #include <sstream>
-//#include <thread>
-//#include <chrono>
-//#include <future>
+#include <regex>
+
+#include <stdio.h>
 
 #include "camHolder.h"
 CamHolder::CamHolder(QWidget *parent) : QWidget(parent)
@@ -39,6 +39,31 @@ CamHolder::CamHolder(QWidget *parent) : QWidget(parent)
 	m_dir = "../data/video/";//argv[1];
 	findPath();
 }
+std::string CamHolder::getDevInfo(const std::string &path)
+{
+	std::string cmd = "v4l2-ctl --all -d " + path;
+	FILE *pipe = popen(cmd.c_str(), "r");
+	if(!pipe)
+	{
+		return "something went wrong";
+	}
+	char buf[256];
+	std::string res{""};
+	std::string name{""};
+	while(!feof(pipe))
+	{
+		if(fgets(buf, 256, pipe) != 0)	res += buf;
+	}
+	pclose(pipe);
+	bool data = 0;
+	std::regex name_re("Card type\\s+:\\s+(.*)\\n");
+	std::smatch match;
+	if(std::regex_search(res, match, name_re))
+	{
+		return match[1];
+	}
+	else return res;
+}
 void CamHolder::connect_(int cam)
 {
 	std::string camPath = "/dev/video" + std::to_string(cam);
@@ -46,6 +71,8 @@ void CamHolder::connect_(int cam)
 	m_capture.open(camPath);
 	m_capture.set(cv::CAP_PROP_FRAME_WIDTH, 640);
 	m_capture.set(cv::CAP_PROP_FRAME_HEIGHT, 480);//int(m_height_d));
+	std::cout << getDevInfo(camPath) << '\n';
+//	std::cout << "///////////////////////////////////////////////////////////" << std::endl;
 }
 void CamHolder::findPath()
 {
@@ -134,21 +161,40 @@ void CamHolder::initRec()
 }
 void CamHolder::stream()
 {
-	std::cout << "Write state: " << m_write_f << std::endl; 
+//	std::cout << "Write state: " << m_write_f << std::endl; 
 	bool readState = 0;
 	m_width_d = m_capture.get(cv::CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
 	m_height_d = m_capture.get(cv::CAP_PROP_FRAME_HEIGHT);
 
 	readState = m_capture.read(m_frame_cv); // read a new frame from video 
+	if(!readState)
+	{
+		std::string filename{""};
+		std::string dir{"/dev/"};
+		for(const auto &fileInfo : std::filesystem::directory_iterator(dir))
+		{
+			filename = fileInfo.path().filename().string();
+			if(filename.find("video") == -1) continue;
+			std::cout << filename << ' ';
+			std::string devName{getDevInfo(dir + filename)};
+			std::cout << devName << '\n';
+			//search for equal fields in m_dev_map
+			//store if there's something new
+			//if new emit signal to add device in widget
+			//if initiated recording from one of provided devices, connect_(m_dev_map->second for the whole range)
+
+
+		}
+	}
 	if(!readState) 
         {
 //		std::cout << "Video camera is disconnected" << std::endl;
-		if(std::filesystem::exists("/dev/video2"))
+		if(std::filesystem::exists("/dev/video0"))
 		{
 			std::cout << "Video2 found" << std::endl;
 			connect_(2);
 		}
-		else if(std::filesystem::exists("/dev/video3"))
+		else if(std::filesystem::exists("/dev/video1"))
 		{
 			std::cout << "Video3 found" << std::endl;
 			connect_(3);

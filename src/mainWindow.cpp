@@ -136,8 +136,9 @@ void MainWindow::initWidgets(QHBoxLayout *grid)
 		if(!widget)	continue;
 		else
 		{
-			widget->setMaximumWidth(450);
-			widget->setMinimumWidth(450);
+			widget->setMaximumWidth(410);
+
+			widget->setMinimumWidth(410);
 //			widget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 		}
 //		delete item;

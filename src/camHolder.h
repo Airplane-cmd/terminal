@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <string>
+#include <map>
 
 #include "opencv2/opencv.hpp"
 class CamHolder : public QWidget
@@ -31,10 +32,13 @@ private:
 	std::string m_dir;
 	void findPath();
 	void initRec();
+	std::string getDevInfo(const std::string &path);
 	double m_height_d;
 	double m_width_d;
 	cv::VideoWriter m_videoWriter;
 	double m_framerate_d;
+	
+	std::multimap<std::string, int> m_dev_map;
 public:
 	void connect_(int cam = 1);
 public slots:
