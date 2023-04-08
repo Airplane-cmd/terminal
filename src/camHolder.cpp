@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <sstream>
 #include <regex>
+#include <cmath>
 
 #include <stdio.h>
 
@@ -21,7 +22,7 @@ CamHolder::CamHolder(QWidget *parent) : QWidget(parent)
 	m_index = 0;
 	m_write_f = 0;
 	m_writeInit_f = 0;
-	m_framerate_d = 1000 / 100;
+	m_framerate_d = 1000 / 30;
 	m_videoLabel_ptr = std::make_shared<QLabel>(this);
 //	m_videoLabel_ptr->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 	m_videoLabel_ptr->setAlignment(Qt::AlignLeft | Qt::AlignTop);
@@ -64,14 +65,18 @@ std::string CamHolder::getDevInfo(const std::string &path)
 	}
 	else return res;
 }
-void CamHolder::connect_(int cam)
+bool CamHolder::connect_(int cam)
 {
 	std::string camPath = "/dev/video" + std::to_string(cam);
 	std::cout << "connecting..." << std::endl;
-	m_capture.open(camPath);
-	m_capture.set(cv::CAP_PROP_FRAME_WIDTH, 640);
-	m_capture.set(cv::CAP_PROP_FRAME_HEIGHT, 480);//int(m_height_d));
-	std::cout << getDevInfo(camPath) << '\n';
+	if(m_capture.open(camPath))
+	{
+		m_capture.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+		m_capture.set(cv::CAP_PROP_FRAME_HEIGHT, 480);//int(m_height_d));
+		return 1;
+	}
+	return 0;
+//	std::cout << getDevInfo(camPath) << '\n';
 //	std::cout << "///////////////////////////////////////////////////////////" << std::endl;
 }
 void CamHolder::findPath()
@@ -156,7 +161,7 @@ void CamHolder::initRec()
 	else 			index = indexMax + 1;
 	int fourcc = cv::VideoWriter::fourcc('m', 'p', '4', 'v');
 	cv::Size frameRes{int(m_width_d), int(m_height_d)};
-	m_videoWriter = cv::VideoWriter(std::string(m_dir + currentDate + '_' + std::to_string(index) + ".mp4"), fourcc, int(m_framerate_d), frameRes);//works?
+	m_videoWriter = cv::VideoWriter(std::string(m_dir + currentDate + '_' + std::to_string(index) + ".mp4"), fourcc, int(m_framerate_d), frameRes);
 	
 }
 void CamHolder::stream()
@@ -175,9 +180,25 @@ void CamHolder::stream()
 		{
 			filename = fileInfo.path().filename().string();
 			if(filename.find("video") == -1) continue;
-			std::cout << filename << ' ';
+//			std::cout << filename << ' ';
 			std::string devName{getDevInfo(dir + filename)};
-			std::cout << devName << '\n';
+
+
+			int index = 0;
+			for(std::size_t i = filename.size() - 1; i > 4; --i)	index += (filename[i] - 48) * pow(10, filename.size() - 1 - i);
+			std::cout << devName <</* " " << index << */'\n';
+
+			auto range = m_dev_map.equal_range(devName);
+			bool found_f = 0;
+			for(auto it = range.first; it != range.second; ++it)
+			{
+				if(it->second == index)	found_f = 1;
+			}
+			if(!found_f)
+			{
+				m_dev_map.insert(std::make_pair(devName, index));
+			}
+
 			//search for equal fields in m_dev_map
 			//store if there's something new
 			//if new emit signal to add device in widget
@@ -185,8 +206,23 @@ void CamHolder::stream()
 
 
 		}
+		std::cout << "connection initiation: " << '\n';
+		std::string dev{"Conexant VIDEO GRABBER"};
+		int cntr = 0;
+		auto range = m_dev_map.equal_range(dev);
+		for(auto it = range.first; it != range.second; ++it)
+		{
+			if(connect_(it->second))
+			{
+				std::cout << "connected to " << it->second << '\n';
+				break;
+			}
+			else	std::cout << "Not connected to " << it->second << '\n';
+			++cntr;
+		}
+		if(cntr == 0)	std::cout << "there is no matches" << '\n';
 	}
-	if(!readState) 
+/*	if(!readState) 
         {
 //		std::cout << "Video camera is disconnected" << std::endl;
 		if(std::filesystem::exists("/dev/video0"))
@@ -200,7 +236,7 @@ void CamHolder::stream()
 			connect_(3);
 		}
 		return;
-	}
+	}*/
 //	cv::imshow("video", m_frame_cv);
 	std::string path = m_dir + std::to_string(m_index) + ".jpg";
 //	cv::imwrite(path, m_frame_cv);

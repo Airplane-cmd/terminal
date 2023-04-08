@@ -40,7 +40,7 @@ private:
 	
 	std::multimap<std::string, int> m_dev_map;
 public:
-	void connect_(int cam = 1);
+	bool connect_(int cam = 1);
 public slots:
 	void stream();
 	void s_stopRec();
