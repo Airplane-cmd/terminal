@@ -26,7 +26,7 @@ private:
 
 	bool m_write_f = 0;
 	bool m_writeInit_f = 0;
-
+	bool m_readState_f = 0;
 	cv::VideoCapture m_capture;
 	cv::Mat m_frame_cv;
 	std::string m_dir;
@@ -37,6 +37,8 @@ private:
 	double m_width_d;
 	cv::VideoWriter m_videoWriter;
 	double m_framerate_d;
+
+	std::string m_activeDev_str;
 	
 	std::multimap<std::string, int> m_dev_map;
 public:
@@ -48,6 +50,10 @@ public slots:
 	void s_startRec();
 	void s_setWriteFlag(bool);
 	
+	void s_setDev(const std::string &);
+
+signals:
+	void sig_gotNewDevice(const std::string &);
 
 
 

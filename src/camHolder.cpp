@@ -23,6 +23,7 @@ CamHolder::CamHolder(QWidget *parent) : QWidget(parent)
 	m_write_f = 0;
 	m_writeInit_f = 0;
 	m_framerate_d = 1000 / 30;
+	m_activeDev_str = "";
 	m_videoLabel_ptr = std::make_shared<QLabel>(this);
 //	m_videoLabel_ptr->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 	m_videoLabel_ptr->setAlignment(Qt::AlignLeft | Qt::AlignTop);
@@ -61,8 +62,11 @@ std::string CamHolder::getDevInfo(const std::string &path)
 	std::smatch match;
 	if(std::regex_search(res, match, name_re))
 	{
+		std::cout << match[1] << '\n';
+		std::cout << "////////////////////////////////////////////" << '\n';
 		return match[1];
 	}
+
 	else return res;
 }
 bool CamHolder::connect_(int cam)
@@ -119,6 +123,11 @@ void CamHolder::s_setWriteFlag(bool flag)
 		m_writeInit_f = 1;
 	}
 }
+void CamHolder::s_setDev(const std::string &name)
+{
+	m_activeDev_str = name;
+	m_readState_f = 1;
+}
 void CamHolder::initRec()
 {
 	std::cout << "function called" << std::endl;
@@ -172,8 +181,8 @@ void CamHolder::stream()
 	m_height_d = m_capture.get(cv::CAP_PROP_FRAME_HEIGHT);
 
 	readState = m_capture.read(m_frame_cv); // read a new frame from video 
-	if(!readState)
-	{
+//	if(!readState)
+//	{
 		std::string filename{""};
 		std::string dir{"/dev/"};
 		for(const auto &fileInfo : std::filesystem::directory_iterator(dir))
@@ -190,13 +199,19 @@ void CamHolder::stream()
 
 			auto range = m_dev_map.equal_range(devName);
 			bool found_f = 0;
+			bool foundDuplicate_f = 0;
 			for(auto it = range.first; it != range.second; ++it)
 			{
-				if(it->second == index)	found_f = 1;
+				if(it->second == index)		found_f = 1;
+				if(it->first == devName)	foundDuplicate_f = 1;
 			}
 			if(!found_f)
 			{
 				m_dev_map.insert(std::make_pair(devName, index));
+				if(!foundDuplicate_f)	
+				{
+					if(devName != "")	emit sig_gotNewDevice(devName);
+				}
 			}
 
 			//search for equal fields in m_dev_map
@@ -207,8 +222,14 @@ void CamHolder::stream()
 
 		}
 		std::cout << "connection initiation: " << '\n';
-		std::string dev{"Conexant VIDEO GRABBER"};
+//		std::string dev{"Conexant VIDEO GRABBER"};
+//		std::string dev{"USB2.0 PC CAMERA: USB2.0 PC CAM"};
+//		std::string dev{"HD WebCam: HD WebCam"};
+		std::string dev = m_activeDev_str;
 		int cntr = 0;
+	if(!readState || m_readState_f)
+	{
+		m_readState_f = 0;
 		auto range = m_dev_map.equal_range(dev);
 		for(auto it = range.first; it != range.second; ++it)
 		{
@@ -220,8 +241,8 @@ void CamHolder::stream()
 			else	std::cout << "Not connected to " << it->second << '\n';
 			++cntr;
 		}
-		if(cntr == 0)	std::cout << "there is no matches" << '\n';
-	}
+	}	if(cntr == 0)	std::cout << "there is no matches" << '\n';
+//	}
 /*	if(!readState) 
         {
 //		std::cout << "Video camera is disconnected" << std::endl;
