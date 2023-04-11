@@ -33,6 +33,7 @@ private slots:
 	void s_emitConnection(QListWidgetItem *);
 public slots:
 	void s_gotNewDev(const std::string &);
+	void s_removeItem(const std::string &);
 signals:
 	void sig_startRec();
 	void sig_pauseRec();

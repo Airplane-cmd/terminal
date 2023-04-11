@@ -62,8 +62,8 @@ std::string CamHolder::getDevInfo(const std::string &path)
 	std::smatch match;
 	if(std::regex_search(res, match, name_re))
 	{
-		std::cout << match[1] << '\n';
-		std::cout << "////////////////////////////////////////////" << '\n';
+//db		std::cout << match[1] << '\n';
+//db		std::cout << "////////////////////////////////////////////" << '\n';
 		return match[1];
 	}
 
@@ -130,7 +130,7 @@ void CamHolder::s_setDev(const std::string &name)
 }
 void CamHolder::initRec()
 {
-	std::cout << "function called" << std::endl;
+//db	std::cout << "function called" << std::endl;
 	auto now = std::chrono::system_clock::now();
 	std::time_t date = std::chrono::system_clock::to_time_t(now);
 	std::stringstream ss;
@@ -149,8 +149,8 @@ void CamHolder::initRec()
 		int indexS = 0;
  
 		filename = fileInfo.path().filename().string();
-		std::cout << filename << "  ";// << std::endl;//db
-		std::cout << filename.substr(0, 10) << std::endl;
+//db		std::cout << filename << "  ";// << std::endl;//db
+//db		std::cout << filename.substr(0, 10) << std::endl;
 		if(filename.substr(0, 10) != currentDate)	continue;
 		for(uint8_t i = filename.size() - 1; i > 0; --i)
 		{
@@ -160,9 +160,9 @@ void CamHolder::initRec()
 				break;
 			}
 		}
-		std::cout << i << " string index: " <<  std::stoi(filename.substr(indexS + 1, filename.size() - 1)) << std::endl;
+//db		std::cout << i << " string index: " <<  std::stoi(filename.substr(indexS + 1, filename.size() - 1)) << std::endl;
 		index_l = std::stoi(filename.substr(indexS + 1, filename.size() - 1));
-		std::cout << index_l << " | " << std::endl;
+//db		std::cout << index_l << " | " << std::endl;
 		if(index_l > indexMax)	indexMax = index_l;
 		++filesCounter;
 	}
@@ -185,6 +185,8 @@ void CamHolder::stream()
 //	{
 		std::string filename{""};
 		std::string dir{"/dev/"};
+		std::vector<std::string> frameOfDevices_vctr;
+		
 		for(const auto &fileInfo : std::filesystem::directory_iterator(dir))
 		{
 			filename = fileInfo.path().filename().string();
@@ -195,7 +197,7 @@ void CamHolder::stream()
 
 			int index = 0;
 			for(std::size_t i = filename.size() - 1; i > 4; --i)	index += (filename[i] - 48) * pow(10, filename.size() - 1 - i);
-			std::cout << devName <</* " " << index << */'\n';
+//db			std::cout << devName <</* " " << index << */'\n';
 
 			auto range = m_dev_map.equal_range(devName);
 			bool found_f = 0;
@@ -205,23 +207,60 @@ void CamHolder::stream()
 				if(it->second == index)		found_f = 1;
 				if(it->first == devName)	foundDuplicate_f = 1;
 			}
+			if(devName != "")	frameOfDevices_vctr.push_back(devName);
 			if(!found_f)
 			{
+
 				m_dev_map.insert(std::make_pair(devName, index));
+		
 				if(!foundDuplicate_f)	
 				{
-					if(devName != "")	emit sig_gotNewDevice(devName);
+					if(devName != "")
+					{
+		
+						m_dev_vctr.push_back(devName);
+						std::cout << "Added " << devName << " in frameOfDevices_vctr, vector size: "<< frameOfDevices_vctr.size() << '\n';
+						emit sig_gotNewDevice(devName);
+					}
 				}
 			}
-
+			
 			//search for equal fields in m_dev_map
 			//store if there's something new
-			//if new emit signal to add device in widget
-			//if initiated recording from one of provided devices, connect_(m_dev_map->second for the whole range)
-
+			//if new - emit signal to add device in widget
+			//if initiated recording from one of provided devices, connect_(m_dev_map->second for the whole range
+			//make a new vector of device names, initialize it
+			//compare it with multimap m_dev_map
 
 		}
-		std::cout << "connection initiation: " << '\n';
+		std::cout << "Iteration started, vector size: " << frameOfDevices_vctr.size() << " m_vector size: " << m_dev_vctr.size() << '\n';
+
+		for(std::size_t it = 0; it < m_dev_vctr.size(); ++it)
+		{
+			bool deadItem_f = 1;
+			for(std::size_t i = 0; i < frameOfDevices_vctr.size(); ++i)
+			{
+				std::cout << m_dev_vctr[it] << " ?? " << frameOfDevices_vctr[i];
+				if(m_dev_vctr[it] == frameOfDevices_vctr[i])
+				{
+					deadItem_f = 0;
+					std::cout << " found" << '\n';
+					break;
+					
+				}
+				std::cout << '\n';
+			}
+			if(deadItem_f)
+			{
+				m_dev_map.erase(m_dev_vctr[it]);
+				emit sig_removeItem(m_dev_vctr[it]);
+				m_dev_vctr.erase(m_dev_vctr.begin() + it);
+
+			}
+
+		}
+		
+//db		std::cout << "connection initiation: " << '\n';
 //		std::string dev{"Conexant VIDEO GRABBER"};
 //		std::string dev{"USB2.0 PC CAMERA: USB2.0 PC CAM"};
 //		std::string dev{"HD WebCam: HD WebCam"};
@@ -235,13 +274,14 @@ void CamHolder::stream()
 		{
 			if(connect_(it->second))
 			{
-				std::cout << "connected to " << it->second << '\n';
+//db				std::cout << "connected to " << it->second << '\n';
 				break;
 			}
-			else	std::cout << "Not connected to " << it->second << '\n';
+//db			else	std::cout << "Not connected to " << it->second << '\n';
 			++cntr;
 		}
-	}	if(cntr == 0)	std::cout << "there is no matches" << '\n';
+	}
+//db	if(cntr == 0)	std::cout << "there is no matches" << '\n';
 //	}
 /*	if(!readState) 
         {

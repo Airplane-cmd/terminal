@@ -65,6 +65,19 @@ void RecControl::s_gotNewDev(const std::string &devName)
 	m_devList_ptr->insertItem(m_row++, item);
 	
 }
+void RecControl::s_removeItem(const std::string &item)
+{
+	for(QListWidgetItem *it : m_devices_vctr)
+	{
+		if(it->text() == QString::fromStdString(item))
+		{
+			qDebug() << "Removed item " << it->text() << '\n';
+			m_devList_ptr->takeItem(m_devList_ptr->row(it));
+			m_devList_ptr->update();
+			
+		}
+	}
+}
 void RecControl::s_emitConnection(QListWidgetItem *dev)
 {
 	emit sig_connect(std::string(dev->text().toStdString()));

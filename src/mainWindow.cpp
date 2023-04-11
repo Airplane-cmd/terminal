@@ -45,6 +45,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	connect(m_recControl_ptr, &RecControl::sig_pauseRec, m_player, &CamHolder::s_pauseRec);
 	connect(m_recControl_ptr, &RecControl::sig_stopRec, m_player, &CamHolder::s_stopRec);
 	connect(m_player, &CamHolder::sig_gotNewDevice, m_recControl_ptr, &RecControl::s_gotNewDev);
+	connect(m_player, &CamHolder::sig_removeItem, m_recControl_ptr, &RecControl::s_removeItem);
 	connect(m_recControl_ptr, &RecControl::sig_connect, m_player, &CamHolder::s_setDev);
 //	connect(udpHolder, SIGNAL(dataReceived(float)), this, SLOT(udpDataReceived(float)));
 

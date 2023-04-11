@@ -41,6 +41,7 @@ private:
 	std::string m_activeDev_str;
 	
 	std::multimap<std::string, int> m_dev_map;
+	std::vector<std::string> m_dev_vctr;
 public:
 	bool connect_(int cam = 1);
 public slots:
@@ -54,6 +55,7 @@ public slots:
 
 signals:
 	void sig_gotNewDevice(const std::string &);
+	void sig_removeItem(const std::string &);
 
 
 
