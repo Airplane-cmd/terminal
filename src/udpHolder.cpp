@@ -34,12 +34,63 @@ UdpHolder::~UdpHolder()
 	delete socket;
 	delete socket_T;
 }
+void UdpHolder::s_setDepthPdi(std::array<float, 3> &arr)
+{
+	QHostAddress receiver("192.168.90.1");
+	QByteArray data_qba;
+	data_qba.resize(16);
+	data_qba[0] = 0;
+	data_qba[1] = 110;
+	for(uint8_t i = 0; i < 3; ++i)
+	{	
+		uint8_t *bytes = reinterpret_cast<uint8_t *>(&(arr[i]));
+		for(uint8_t j = 0; j < 4; ++j)	data_qba[i * 4 + j + 2] = bytes[3 - j];//?
+	}
+	uint16_t crcR = calculateCRC(data_qba);
+	data_qba[14] = uint8_t(crcR >> 8);
+	data_qba[15] = uint8_t((crcR << 8) >> 8);
+	socket_T->writeDatagram(data_qba, receiver, receiverPort);
+}
+void UdpHolder::s_setYawPdi(std::array<float, 3> &arr)
+{
+	QHostAddress receiver("192.168.90.1");
+	QByteArray data_qba;
+	data_qba.resize(16);
+	data_qba[0] = 0;
+	data_qba[1] = 114;
+	for(uint8_t i = 0; i < 3; ++i)
+	{	
+		uint8_t *bytes = reinterpret_cast<uint8_t *>(&(arr[i]));
+		for(uint8_t j = 0; j < 4; ++j)	data_qba[i * 4 + j + 2] = bytes[3 - j];//?
+	}
+	uint16_t crcR = calculateCRC(data_qba);
+	data_qba[14] = uint8_t(crcR >> 8);
+	data_qba[15] = uint8_t((crcR << 8) >> 8);
+	socket_T->writeDatagram(data_qba, receiver, receiverPort);
+}
+void UdpHolder::s_sendUtilityDatagram(const std::array<uint8_t, 2> &data)//data[0] -- reset, data[1] -- burn PID on STM32
+{
+	QHostAddress receiver("192.168.90.1");
+	QByteArray data_qba;
+	data_qba.resize(10);
+	data_qba[0] = 0;
+	data_qba[1] = 133;
+	data_qba[2] = data[0];//reset
+	data_qba[5] = data[1];//burn PID
+	uint16_t crcR = calculateCRC(data_qba);
+	data_qba[8] = uint8_t(crcR >> 8);
+	data_qba[9] = uint8_t((crcR << 8) >> 8);
+	socket_T->writeDatagram(data_qba, receiver, receiverPort);
+
+
+}
 void UdpHolder::setDepthControl(bool state, float data)
 {
 	QByteArray data_qbe;
 	data_qbe.resize(4);
 	uint8_t* bytes = reinterpret_cast<uint8_t*>(&data);
-	for(int i = 0; i < 4; ++i)	data_qbe[i] = bytes[4 - i];
+	for(int i = 0; i < 4; ++i)	data_qbe[i] = bytes[3 - i];//?
+	delete[] bytes;
 	m_setValueInDatagram(data_qbe, 6);
 	setBitInDatagram(state, 4, datagram[26]);
 }
@@ -48,7 +99,8 @@ void UdpHolder::setYawControl(bool state, float data)
 	QByteArray data_qbe;
 	data_qbe.resize(4);
 	uint8_t* bytes = reinterpret_cast<uint8_t*>(&data);
-	for(int i = 0; i < 4; ++i)	data_qbe[i] = bytes[4 - i];
+	for(int i = 0; i < 4; ++i)	data_qbe[i] = bytes[3 - i];//?
+	delete[] bytes;
 	m_setValueInDatagram(data_qbe, 14);
 	setBitInDatagram(state, 2, datagram[26]);
 }

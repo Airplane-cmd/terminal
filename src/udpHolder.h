@@ -6,6 +6,7 @@
 #include <QByteArray>
 
 #include <vector>
+#include <array>
 #include <string>
 #include <cstring>
 #include <cstddef>
@@ -26,10 +27,15 @@ public slots:
 	void setValueInDatagram(const QByteArray &, uint8_t);
 	void setDepthControl(bool, float);	
 	void setYawControl(bool, float);
+
+	void s_setDepthPdi(std::array<float, 3> &);
+	void s_setYawPdi(std::array<float, 3> &);
+	void s_sendUtilityDatagram(const std::array<uint8_t, 2> &); 
 private:
 	QUdpSocket *socket;
 	QByteArray datagram;
-
+	QByteArray m_depthPdi_qba;
+	QByteArray m_yawPdi_qba;
 	QUdpSocket *socket_T;
 	
 	QHostAddress sender;

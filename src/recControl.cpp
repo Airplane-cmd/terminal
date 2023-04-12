@@ -73,6 +73,7 @@ void RecControl::s_removeItem(const std::string &item)
 		{
 			qDebug() << "Removed item " << it->text() << '\n';
 			m_devList_ptr->takeItem(m_devList_ptr->row(it));
+//			m_devList_ptr->resize(m_devList_ptr->sizeHint());
 			m_devList_ptr->update();
 			
 		}
