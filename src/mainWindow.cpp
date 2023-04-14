@@ -37,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	connect(pl, &PowerLimit::setForce, usbHolder, &USBHolder::setPowerLimit);
 	connect(usbHolder, &USBHolder::joystickData, udpHolder, &UdpHolder::setValueInDatagram);
 	connect(telemetry_w, &QAction::triggered, this, &MainWindow::showTelemetryWindow);
+	connect(m_showUtility_qact_ptr, &QAction::triggered, this, &MainWindow::s_showUtilitySettings);
 	connect(t, &Telemetry::sendDepth, alg, &Algorithms::setDepth);
 	connect(t, &Telemetry::sendYaw, alg, &Algorithms::setYaw);
 	connect(alg, &Algorithms::depthControl, udpHolder, &UdpHolder::setDepthControl);
@@ -47,7 +48,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	connect(m_player, &CamHolder::sig_gotNewDevice, m_recControl_ptr, &RecControl::s_gotNewDev);
 	connect(m_player, &CamHolder::sig_removeItem, m_recControl_ptr, &RecControl::s_removeItem);
 	connect(m_recControl_ptr, &RecControl::sig_connect, m_player, &CamHolder::s_setDev);
-//	connect(udpHolder, SIGNAL(dataReceived(float)), this, SLOT(udpDataReceived(float)));
+	connect(m_burninator_ptr, &BurnInator::sig_setYawPdi, udpHolder, &UdpHolder::s_setYawPdi);
+	connect(m_burninator_ptr, &BurnInator::sig_setDepthPdi, udpHolder, &UdpHolder::s_setDepthPdi);
+	connect(m_burninator_ptr, &BurnInator::sig_rebootBoard, udpHolder, &UdpHolder::s_rebootBoard);
+	connect(m_burninator_ptr, &BurnInator::sig_burnNumbers, udpHolder, &UdpHolder::s_burnNumbers);
+
+//connect(udpHolder, SIGNAL(dataReceived(float)), this, SLOT(udpDataReceived(float)));
+
+//sig_setDepthPdi(std::array<float, 3> &);
+//	void sig_setYawPdi(std::array<float, 3> &);
+//	void sig_rebootBoard();
+//	void sig_burnNumbers();
+
+//	void s_setDepthPdi(std::array<float, 3> &);
+//	void s_setYawPdi(std::array<float, 3> &);
+//	void s_rebootBoard();
+//	void s_burnNumbers();
 
 
 }
@@ -85,6 +101,10 @@ MainWindow::~MainWindow()
 	delete usbHolder;
 	delete udpHolder;
 }
+void MainWindow::s_showUtilitySettings()
+{
+	m_burninator_ptr->show();
+}
 void MainWindow::udpDataReceived(float roll)
 {
 	qDebug() << roll << Qt::endl;
@@ -105,6 +125,7 @@ void MainWindow::initWidgets(QHBoxLayout *grid)
 {
 	m_vbox_vctr.push_back(new QVBoxLayout);
 	m_vbox_vctr.push_back(new QVBoxLayout);
+	m_burninator_ptr = new BurnInator;
 	t = new Telemetry(this);
 	lh = new LogsHolder(this);
 	pl = new PowerLimit(this);
@@ -165,6 +186,9 @@ void MainWindow::initActions()
 	forceLimits_w = new QAction("Force Limit", this);
 	algorithms_w = new QAction("Algorithms", this);
 	data_w = new QAction("Data", this);
+
+	m_showUtility_qact_ptr = new QAction("Utility", this);
+
 	lh->writeInLog("Some actions initiated");
 
 }
@@ -175,6 +199,7 @@ void MainWindow::initWidgetsMenu()
 	forceLimits = new QAction("Force Limit", this);
 	algorithms = new QAction("Algorithms", this);
 	data = new QAction("Data", this);
+
 	checkBoxes.push_back(telemetry);
 	checkBoxes.push_back(logs);
 	checkBoxes.push_back(forceLimits);
@@ -194,7 +219,15 @@ void MainWindow::createMenus()
 	initActions();
 	devices = menuBar()->addMenu("Devices");
 	windows = menuBar()->addMenu("Windows");
+	m_utility_qm_ptr = menuBar()->addMenu("Utility");
 
+	m_utility_qm_ptr->addAction(m_showUtility_qact_ptr);
+	//add action "show burninator"
+	//add m_burninator_ptr object;
+	//make qlabes and add them to burninator class
+	//add conncections to action and object
+	//activate action and show burninator window with m_burninator_ptr->show();
+	//test it somehow
 	windows->addAction(telemetry_w);
 	windows->addAction(logs_w);
 	windows->addAction(forceLimits_w);

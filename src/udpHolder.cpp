@@ -50,6 +50,7 @@ void UdpHolder::s_setDepthPdi(std::array<float, 3> &arr)
 	data_qba[14] = uint8_t(crcR >> 8);
 	data_qba[15] = uint8_t((crcR << 8) >> 8);
 	socket_T->writeDatagram(data_qba, receiver, receiverPort);
+	qDebug() << "datagram with depth PDI was sent" << '\n';
 }
 void UdpHolder::s_setYawPdi(std::array<float, 3> &arr)
 {
@@ -67,8 +68,10 @@ void UdpHolder::s_setYawPdi(std::array<float, 3> &arr)
 	data_qba[14] = uint8_t(crcR >> 8);
 	data_qba[15] = uint8_t((crcR << 8) >> 8);
 	socket_T->writeDatagram(data_qba, receiver, receiverPort);
+	qDebug() <<  "datagram with yaw PDI was sent" << '\n';
+
 }
-void UdpHolder::s_sendUtilityDatagram(const std::array<uint8_t, 2> &data)//data[0] -- reset, data[1] -- burn PID on STM32
+void UdpHolder::sendUtilityDatagram(const std::array<uint8_t, 2> &data)//data[0] -- reset, data[1] -- burn PID on STM32
 {
 	QHostAddress receiver("192.168.90.1");
 	QByteArray data_qba;
@@ -83,6 +86,18 @@ void UdpHolder::s_sendUtilityDatagram(const std::array<uint8_t, 2> &data)//data[
 	socket_T->writeDatagram(data_qba, receiver, receiverPort);
 
 
+}
+void UdpHolder::s_rebootBoard()
+{
+	std::array<uint8_t, 2> data = {1, 0};
+	sendUtilityDatagram(data);
+	qDebug() << "board was rebooted" << '\n';
+}
+void UdpHolder::s_burnNumbers()
+{
+	std::array<uint8_t, 2> data = {0, 1};
+	sendUtilityDatagram(data);
+	qDebug() << "numbers were burnt" << '\n';
 }
 void UdpHolder::setDepthControl(bool state, float data)
 {

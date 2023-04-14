@@ -30,7 +30,8 @@ public slots:
 
 	void s_setDepthPdi(std::array<float, 3> &);
 	void s_setYawPdi(std::array<float, 3> &);
-	void s_sendUtilityDatagram(const std::array<uint8_t, 2> &); 
+	void s_rebootBoard();
+	void s_burnNumbers();
 private:
 	QUdpSocket *socket;
 	QByteArray datagram;
@@ -52,6 +53,7 @@ private:
 	void getErrors(const QByteArray &arr);
 	void m_setValueInDatagram(const QByteArray &, uint8_t);
 	void setBitInDatagram(bool, uint8_t, char);
+	void sendUtilityDatagram(const std::array<uint8_t, 2> &);
 	float getFloat(const QByteArray &arr, const std::string &arg);
 	std::vector<bool> getInt(const QByteArray &arr, const std::string &arg);
 

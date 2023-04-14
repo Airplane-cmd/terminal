@@ -20,6 +20,7 @@
 #include "usbHolder.h"
 #include "camHolder.h"
 #include "recControl.h"
+#include "burnInator.h"
 
 class MainWindow : public QMainWindow
 {
@@ -55,7 +56,9 @@ private:
 		QAction *forceLimits_w;
 		QAction *algorithms_w;
 		QAction *data_w;
-
+	QMenu *m_utility_qm_ptr;
+		QAction *m_showUtility_qact_ptr;
+		BurnInator *m_burninator_ptr;
 	std::vector<QAction *> checkBoxes;
 	
 	QGridLayout *grid;
@@ -86,5 +89,6 @@ private:
 private slots:
 	void showTelemetryWindow();
 	void udpDataReceived(float roll);
+	void s_showUtilitySettings();
 };
 #endif
