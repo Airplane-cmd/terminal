@@ -219,7 +219,7 @@ void CamHolder::stream()
 					{
 		
 						m_dev_vctr.push_back(devName);
-						std::cout << "Added " << devName << " in frameOfDevices_vctr, vector size: "<< frameOfDevices_vctr.size() << '\n';
+//						std::cout << "Added " << devName << " in frameOfDevices_vctr, vector size: "<< frameOfDevices_vctr.size() << '\n';
 						emit sig_gotNewDevice(devName);
 					}
 				}
@@ -233,18 +233,18 @@ void CamHolder::stream()
 			//compare it with multimap m_dev_map
 
 		}
-		std::cout << "Iteration started, vector size: " << frameOfDevices_vctr.size() << " m_vector size: " << m_dev_vctr.size() << '\n';
+//		std::cout << "Iteration started, vector size: " << frameOfDevices_vctr.size() << " m_vector size: " << m_dev_vctr.size() << '\n';
 
 		for(std::size_t it = 0; it < m_dev_vctr.size(); ++it)
 		{
 			bool deadItem_f = 1;
 			for(std::size_t i = 0; i < frameOfDevices_vctr.size(); ++i)
 			{
-				std::cout << m_dev_vctr[it] << " ?? " << frameOfDevices_vctr[i];
+//				std::cout << m_dev_vctr[it] << " ?? " << frameOfDevices_vctr[i];
 				if(m_dev_vctr[it] == frameOfDevices_vctr[i])
 				{
 					deadItem_f = 0;
-					std::cout << " found" << '\n';
+//					std::cout << " found" << '\n';
 					break;
 					
 				}

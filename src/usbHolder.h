@@ -18,10 +18,14 @@ public:
 	~USBHolder();
 
 private:
+	uint8_t m_camCount;
+	std::vector<uint8_t> m_camPosValues_vctr;
+	uint8_t m_camStep;
 	uint8_t m_powerLimit;
 	libusb_device_handle* m_device;
 	QTimer* m_timer;
 	QByteArray m_data;
+	QByteArray data_new;
 	unsigned char data_ch[22];
 
 	void printRawData();

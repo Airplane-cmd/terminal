@@ -105,9 +105,10 @@ void UdpHolder::setDepthControl(bool state, float data)
 	data_qbe.resize(4);
 	uint8_t* bytes = reinterpret_cast<uint8_t*>(&data);
 	for(int i = 0; i < 4; ++i)	data_qbe[i] = bytes[3 - i];//?
-	delete[] bytes;
+//	delete bytes;
 	m_setValueInDatagram(data_qbe, 6);
 	setBitInDatagram(state, 4, datagram[26]);
+//	delete []bytes;
 }
 void UdpHolder::setYawControl(bool state, float data)
 {
@@ -115,9 +116,10 @@ void UdpHolder::setYawControl(bool state, float data)
 	data_qbe.resize(4);
 	uint8_t* bytes = reinterpret_cast<uint8_t*>(&data);
 	for(int i = 0; i < 4; ++i)	data_qbe[i] = bytes[3 - i];//?
-	delete[] bytes;
+//	delete bytes;
 	m_setValueInDatagram(data_qbe, 14);
 	setBitInDatagram(state, 2, datagram[26]);
+//	delete []bytes;
 }
 void UdpHolder::setBitInDatagram(bool bit, uint8_t index, char byte)
 {
@@ -207,7 +209,7 @@ void UdpHolder::readPendingDatagrams()
 		cntnr.push_back(getInt(buffer, "leak"));	
 		cntnr.push_back(getInt(buffer, "err"));
 
-		printTelemetry(buffer);
+//		printTelemetry(buffer);
 //		printDatagram(buffer);
 		uint16_t crc = calculateCRC(buffer);
 		//fkvjnb jfnbj
