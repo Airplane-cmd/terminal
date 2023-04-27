@@ -16,6 +16,7 @@
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
+	for(uint8_t i = 0; i < 2; ++i)	m_camWindows_vctr.push_back(new QMainWindow);
 	setStyleSheet("QMenu::item::selected{background-color: black; }");
 //	LogsHolder::initLogFile();
 
@@ -42,12 +43,24 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	connect(t, &Telemetry::sendYaw, alg, &Algorithms::setYaw);
 	connect(alg, &Algorithms::depthControl, udpHolder, &UdpHolder::setDepthControl);
 	connect(alg, &Algorithms::yawControl, udpHolder, &UdpHolder::setYawControl);
+
 	connect(m_recControl_ptr, &RecControl::sig_startRec, m_player, &CamHolder::s_startRec);
 	connect(m_recControl_ptr, &RecControl::sig_pauseRec, m_player, &CamHolder::s_pauseRec);
 	connect(m_recControl_ptr, &RecControl::sig_stopRec, m_player, &CamHolder::s_stopRec);
 	connect(m_player, &CamHolder::sig_gotNewDevice, m_recControl_ptr, &RecControl::s_gotNewDev);
 	connect(m_player, &CamHolder::sig_removeItem, m_recControl_ptr, &RecControl::s_removeItem);
+	connect(m_player, &CamHolder::sig_resize, this, &MainWindow::s_resize);
+
+	connect(m_recControlSecond_ptr, &RecControl::sig_startRec, m_playerSecond, &CamHolder::s_startRec);//?
+	connect(m_recControlSecond_ptr, &RecControl::sig_pauseRec, m_playerSecond, &CamHolder::s_pauseRec);
+	connect(m_recControlSecond_ptr, &RecControl::sig_stopRec, m_playerSecond, &CamHolder::s_stopRec);
+	connect(m_playerSecond, &CamHolder::sig_gotNewDevice, m_recControlSecond_ptr, &RecControl::s_gotNewDev);
+	connect(m_playerSecond, &CamHolder::sig_removeItem, m_recControlSecond_ptr, &RecControl::s_removeItem);
+	connect(m_playerSecond, &CamHolder::sig_resize, this, &MainWindow::s_resize);
+
 	connect(m_recControl_ptr, &RecControl::sig_connect, m_player, &CamHolder::s_setDev);
+	connect(m_recControlSecond_ptr, &RecControl::sig_connect, m_playerSecond, &CamHolder::s_setDev);
+
 	connect(m_burninator_ptr, &BurnInator::sig_setYawPdi, udpHolder, &UdpHolder::s_setYawPdi);
 	connect(m_burninator_ptr, &BurnInator::sig_setDepthPdi, udpHolder, &UdpHolder::s_setDepthPdi);
 	connect(m_burninator_ptr, &BurnInator::sig_rebootBoard, udpHolder, &UdpHolder::s_rebootBoard);
@@ -70,6 +83,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 MainWindow::~MainWindow()
 {
 	delete m_player;
+	delete m_playerSecond;
+	delete m_recControl_ptr;
+	delete m_recControlSecond_ptr;
 	delete hardware;
 	delete devices;
 	delete cameras;
@@ -100,6 +116,14 @@ MainWindow::~MainWindow()
 	delete alg;
 	delete usbHolder;
 	delete udpHolder;
+	for(QMainWindow *it : m_camWindows_vctr)	delete it;
+}
+void MainWindow::s_resize(double width, double height)
+{
+	if(m_camWindows_vctr.size() != 0)
+	{
+		for(uint8_t i = 0; i < 2; ++i)	m_camWindows_vctr[i]->resize(width, height);
+	}
 }
 void MainWindow::s_showUtilitySettings()
 {
@@ -129,9 +153,13 @@ void MainWindow::initWidgets(QHBoxLayout *grid)
 	t = new Telemetry(this);
 	lh = new LogsHolder(this);
 	pl = new PowerLimit(this);
-	alg = new Algorithms(this);	
-	m_player = new CamHolder(this);
-	m_recControl_ptr = new RecControl(this);
+	alg = new Algorithms(this);
+
+	m_player = new CamHolder;
+	m_recControl_ptr = new RecControl;
+	m_playerSecond = new CamHolder;
+	m_recControlSecond_ptr = new RecControl;
+
 //	m_player->resize(1000, 1000);
 	QWidget *empty = new QWidget(this);
 	empty->setMaximumWidth(400);
@@ -142,9 +170,21 @@ void MainWindow::initWidgets(QHBoxLayout *grid)
 	m_vbox_vctr[0]->addWidget(pl);//, 3, 0, 1, 1);
 	m_vbox_vctr[0]->addWidget(alg);//, 4, 0);
 	m_vbox_vctr[0]->addWidget(m_recControl_ptr);
+	m_vbox_vctr[0]->addWidget(m_recControlSecond_ptr);
 	m_vbox_vctr[0]->addWidget(empty);//, 5, 0, 2, 1);
+//	CamHolder *cam(m_player);
+	QMainWindow *&window = m_camWindows_vctr[0];
+	window->resize(m_player->width_d, m_player->height_d);
+	window->setCentralWidget(m_player);
+	window->show();
 
-	m_vbox_vctr[1]->addWidget(m_player);
+	QMainWindow *&windowS = m_camWindows_vctr[1];
+	windowS->resize(m_playerSecond->width_d, m_playerSecond->height_d);
+	windowS->setCentralWidget(m_playerSecond);
+	windowS->show();
+//
+//	m_vbox_vctr[1]->addWidget(m_player);
+
 	for(int i = 0; i < m_vbox_vctr[0]->count(); ++i)
 	{
 		QLayoutItem *item = m_vbox_vctr[0]->itemAt(i);

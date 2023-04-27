@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 	wndw.resize(scr->geometry().width()/2, scr->geometry().height());
 	wndw.move(0, 0);
 	wndw.show();
-//	BurnInator cum;
+//	CamHolder cum;
 //	cum.resize(640, 480);
 //	cum.show();
 //	SpinLayout wndw1("depth", 0, 5, 1);

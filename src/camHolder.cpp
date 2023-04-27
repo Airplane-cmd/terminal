@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include <QDebug>
+#include <QResizeEvent>
 //#include <QString>
 //#include <QDate>
 
@@ -40,6 +41,12 @@ CamHolder::CamHolder(QWidget *parent) : QWidget(parent)
 //	if (!m_capture.isOpened()) 	std::cout << "cannot open camera" << std::endl;
 	m_dir = "../data/video/";//argv[1];
 	findPath();
+}
+void CamHolder::resizeEvent(QResizeEvent* eve)
+{
+	QWidget::resizeEvent(eve);
+	m_widgetWidth_d = eve->size().width();
+	m_widgetHeight_d = eve->size().height();
 }
 std::string CamHolder::getDevInfo(const std::string &path)
 {
@@ -125,11 +132,13 @@ void CamHolder::s_setWriteFlag(bool flag)
 }
 void CamHolder::s_setDev(const std::string &name)
 {
+	std::cout << "called\n";
 	m_activeDev_str = name;
 	m_readState_f = 1;
 }
 void CamHolder::initRec()
 {
+	
 //db	std::cout << "function called" << std::endl;
 	auto now = std::chrono::system_clock::now();
 	std::time_t date = std::chrono::system_clock::to_time_t(now);
@@ -170,6 +179,8 @@ void CamHolder::initRec()
 	else 			index = indexMax + 1;
 	int fourcc = cv::VideoWriter::fourcc('m', 'p', '4', 'v');
 	cv::Size frameRes{int(m_width_d), int(m_height_d)};
+	width_d = m_width_d;
+	height_d = m_height_d;
 	m_videoWriter = cv::VideoWriter(std::string(m_dir + currentDate + '_' + std::to_string(index) + ".mp4"), fourcc, int(m_framerate_d), frameRes);
 	
 }
@@ -179,7 +190,8 @@ void CamHolder::stream()
 	bool readState = 0;
 	m_width_d = m_capture.get(cv::CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
 	m_height_d = m_capture.get(cv::CAP_PROP_FRAME_HEIGHT);
-
+	width_d = m_width_d;
+	height_d = m_height_d;
 	readState = m_capture.read(m_frame_cv); // read a new frame from video 
 //	if(!readState)
 //	{
@@ -274,10 +286,10 @@ void CamHolder::stream()
 		{
 			if(connect_(it->second))
 			{
-//db				std::cout << "connected to " << it->second << '\n';
+				std::cout << "connected to " << it->second << '\n';
 				break;
 			}
-//db			else	std::cout << "Not connected to " << it->second << '\n';
+//			else	std::cout << "Not connected to " << it->second << '\n';
 			++cntr;
 		}
 	}
@@ -304,7 +316,14 @@ void CamHolder::stream()
 	if(m_write_f)	m_videoWriter.write(m_frame_cv);
         m_index++;
 	QImage img(m_frame_cv.data, m_frame_cv.cols, m_frame_cv.rows, m_frame_cv.step, QImage::Format_BGR888);
-	m_videoLabel_ptr->setPixmap(QPixmap::fromImage(img));
+	QImage resizedImg = img.scaled(m_widgetWidth_d, m_widgetHeight_d, Qt::KeepAspectRatio);
+	m_videoLabel_ptr->setPixmap(QPixmap::fromImage(resizedImg));
 	m_videoLabel_ptr->adjustSize();
-	QCoreApplication::processEvents();
+	if(m_width_d != m_widthP_d || m_height_d != m_heightP_d)
+	{
+		emit sig_resize(m_width_d, m_height_d);
+		m_heightP_d = m_height_d;
+		m_widthP_d = m_width_d;
+	}
+	QCoreApplication::processEvents();//
 }
