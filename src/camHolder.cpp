@@ -22,7 +22,7 @@ CamHolder::CamHolder(QWidget *parent) : QWidget(parent)
 	m_index = 0;
 	m_write_f = 0;
 	m_writeInit_f = 0;
-	m_framerate_d = 1000 / 30;
+	m_framerate_d = 1000 / 20;
 	m_activeDev_str = "";
 	m_videoLabel_ptr = std::make_shared<QLabel>(this);
 //	m_videoLabel_ptr->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -306,4 +306,5 @@ void CamHolder::stream()
 	QImage img(m_frame_cv.data, m_frame_cv.cols, m_frame_cv.rows, m_frame_cv.step, QImage::Format_BGR888);
 	m_videoLabel_ptr->setPixmap(QPixmap::fromImage(img));
 	m_videoLabel_ptr->adjustSize();
+	QCoreApplication::processEvents();
 }

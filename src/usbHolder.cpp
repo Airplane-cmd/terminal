@@ -86,16 +86,16 @@ void USBHolder::readJoystickData()
 //			qDebug() << "here" << Qt::endl;
 			auto fj = {[&](){return int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6]));}};
 	
-			m_data[0] = uint8_t(float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6])) - 512) / 512 * 100);//thrusters control values in range -100:100
-			m_data[1] = uint8_t(-float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[3] + 256 * (3 - data_ch[4])) - 512) / 512 * 100);
+			m_data[0] = uint8_t(-float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6])) - 512) / 512 * 100);//thrusters control values in range -100:100
+			m_data[1] = uint8_t(float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[3] + 256 * (3 - data_ch[4])) - 512) / 512 * 100);
 			m_data[2] = uint8_t(-float(m_powerLimit) / 100 * float(data_ch[8] - 128) / 128 * 100);
 			m_data[3] = uint8_t(-float(m_powerLimit) / 100 * float((256 - data_ch[7]) - 128) / 128 * 100);
 
 //			data_new[0] = int8_t(float(data_ch[9] - 128) / 128 * 100);//hardware debug statements
 //			data_new[1] = int8_t(float(data_ch[9] - 128) / 128 * 100);
 
-			data_new[2] = (data_ch[9] < 100) ? -100 : (((data_ch[9]) > 156) ? 100 : 0);//int8_t(float(data_ch[9] - 128) / 128 * 100);//nt8_t(int(int8_t(data_ch[9]) - 128) / 128 * 100); //uint8_t(int(int8_t(data_ch[9]) - 128) / 128 * 100);
-			data_new[3] = int8_t((data_ch[16] == 255) ? 100 : ((data_ch[17] == 255) ? -100 : 0));
+			data_new[3] = (data_ch[9] < 100) ? -100 : (((data_ch[9]) > 156) ? 100 : 0);//int8_t(float(data_ch[9] - 128) / 128 * 100);//nt8_t(int(int8_t(data_ch[9]) - 128) / 128 * 100); //uint8_t(int(int8_t(data_ch[9]) - 128) / 128 * 100);
+			data_new[2] = int8_t((data_ch[16] == 255) ? 100 : ((data_ch[17] == 255) ? -100 : 0));
 			for(uint8_t i = 0; i < m_camCount; ++i)//cams control values
 			{
 				if(int8_t(m_camPosValues_vctr[i] + m_camStep) < 101) m_camPosValues_vctr[i] += m_camStep * (uint8_t(data_ch[2 * i + 10]) / 255);
@@ -103,7 +103,7 @@ void USBHolder::readJoystickData()
 				data_new[i] = m_camPosValues_vctr[i];
 			}
 //			printRawData();
-			qDebug() << int8_t(data_new[2]) << " " << int8_t(data_new[3]) << '\n';//int8_t(float(data_ch[9] - 128) / 128 * 100) << '\n';
+//			qDebug() << int8_t(data_new[0]) << " " << int8_t(data_new[1]) << '\n';//int8_t(float(data_ch[9] - 128) / 128 * 100) << '\n';
 //			printControlData();
 			emit joystickData(m_data, 2);
 			emit joystickData(data_new, 29);
