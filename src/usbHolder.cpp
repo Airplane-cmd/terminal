@@ -14,29 +14,33 @@
 
 USBHolder::USBHolder(QObject *parent) : QObject(parent)
 {
+	
 	m_camCount = 2;
 	for(uint8_t i = 0; i < m_camCount; ++i)		m_camPosValues_vctr.push_back(0);
 	m_powerLimit = 50;
 	m_device = 0;
 	m_camStep = 10;
 	m_timer = new QTimer(this);
+	m_timerOpen = new QTimer(this);
 //	m_thread = new std::thread(&USBHolder::readJoystickData, this);
 	connect(m_timer, &QTimer::timeout, this, &USBHolder::readJoystickData);
-
-	if(openDevice())
-	{
-        	m_timer->start(10);
-		if(libusb_kernel_driver_active(m_device, 0) == 1)
-        	{
-        		int result = libusb_detach_kernel_driver(m_device, 0);
-        		if (result == LIBUSB_SUCCESS)
-        		{
-        			qDebug() << "Kernel driver detached successfully";
-            		}
-        		else	qDebug() << "Error detaching kernel driver:" << libusb_error_name(result) << Qt::endl;
-		}
-        }
-	else	qDebug() << "Kerner driver isn't active;" << Qt::endl;
+	connect(m_timerOpen, &QTimer::timeout, this, &USBHolder::s_openDevice);
+	m_timerOpen->start(13);
+//	if(openDevice())
+//	{
+//	      	m_timer->start(10);
+		
+//		if(libusb_kernel_driver_active(m_device, 0) == 1)
+//	      	{
+//        		int result = libusb_detach_kernel_driver(m_device, 0);
+//	  		if (result == LIBUSB_SUCCESS)
+//	      		{
+//        			qDebug() << "Kernel driver detached successfully";
+//            		}
+//        		else	qDebug() << "Error detaching kernel driver:" << libusb_error_name(result) << Qt::endl;
+//		}
+//        }
+	
 }
 USBHolder::~USBHolder()
 {
@@ -47,6 +51,8 @@ USBHolder::~USBHolder()
 //	delete m_device;
 //	delete m_thread;
 	delete m_timer;
+	delete m_timerOpen;
+
 
 }
 void USBHolder::setPowerLimit(uint8_t vl)
@@ -102,34 +108,44 @@ void USBHolder::readJoystickData()
 				if(int8_t(m_camPosValues_vctr[i] - m_camStep) > -101) m_camPosValues_vctr[i] -= m_camStep * (uint8_t(data_ch[2 * i + 11]) / 255);
 				data_new[i] = m_camPosValues_vctr[i];
 			}
-//			printRawData();
+			printRawData();
 //			qDebug() << int8_t(data_new[0]) << " " << int8_t(data_new[1]) << '\n';//int8_t(float(data_ch[9] - 128) / 128 * 100) << '\n';
 //			printControlData();
+			QCoreApplication::processEvents();
 			emit joystickData(m_data, 2);
 			emit joystickData(data_new, 29);
+QCoreApplication::processEvents();
+
        		}	
 		else
 		{
 //			qDebug() << "Size: " << bytesTransferred << Qt::endl;
 //			qDebug() << libusb_error_name(result) << Qt::endl;
         		closeDevice();
-		      	openDevice();
+//		      	openDevice();
 		}
 	}
 }
 void USBHolder::readUSBData()
 {
-	while(m_timer->isActive())	readJoystickData();
+	while(m_timer->isActive())
+	{
+		readJoystickData();
+		QCoreApplication::processEvents();
+	}
+
 }
-bool USBHolder::openDevice()
+void USBHolder::s_openDevice()
 {
+	QCoreApplication::processEvents();
+
 	libusb_context* context;
 	libusb_device** list;
 	libusb_device* device = 0;
 	libusb_device_handle *handle = 0;
     	if(libusb_init(&context) != LIBUSB_SUCCESS)
     	{
-        	return false;
+        	return;// false;
     	}
     	int count = libusb_get_device_list(context, &list);
     	for(int i = 0; i < count; i++)
@@ -142,7 +158,19 @@ bool USBHolder::openDevice()
 			qDebug() << "Joystick found:" << Qt::endl;
         		if(libusb_open(list[i], &m_device) == LIBUSB_SUCCESS)
 			{
+				m_timerOpen->stop();
+				m_timer->start(11);
+//				m_state_f = 1;
 //				qDebug() <<"Correct product id: " << descriptor.idProduct << Qt::endl;
+				if(libusb_kernel_driver_active(m_device, 0) == 1)
+        			{
+        				int result = libusb_detach_kernel_driver(m_device, 0);
+        				if(result == LIBUSB_SUCCESS)
+        				{
+        					qDebug() << "Kernel driver detached successfully";
+            				}
+        				else	qDebug() << "Error detaching kernel driver:" << libusb_error_name(result) << Qt::endl;
+				}
 				break;
 			}
 			else	
@@ -153,15 +181,16 @@ bool USBHolder::openDevice()
 		}
         
     	}
+	qDebug() << "open device?\n";
 	libusb_free_device_list(list, 1);
     	if(m_device == 0)
 	{
         	libusb_exit(context);
-        	return false;
+        	return;// false;
     	}
     	libusb_set_configuration(m_device, 1);
     	libusb_claim_interface(m_device, 0);
-    	return true;
+    	return;// true;
 }
 void USBHolder::closeDevice()
 {

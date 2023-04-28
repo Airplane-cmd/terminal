@@ -1,4 +1,5 @@
 #include <QTimer>
+#include <QCoreApplication>
 #include "udpHolder.h"
 
 UdpHolder::UdpHolder(QObject *parent) : QObject{parent}
@@ -22,7 +23,7 @@ UdpHolder::UdpHolder(QObject *parent) : QObject{parent}
 	receiverPort = 2030;
 //	receiver = new QHostAddress("192.168.90.1");
 
-	connect(socket, &QUdpSocket::readyRead, this, &UdpHolder::readPendingDatagrams);
+	connect(/*socket, &QUdpSocket::readyRead, */ timer, &QTimer::timeout, this, &UdpHolder::readPendingDatagrams);
 	connect(timer, &QTimer::timeout, this, &UdpHolder::writePendingDatagram);
 
 	timer->start(100);
@@ -216,7 +217,10 @@ void UdpHolder::readPendingDatagrams()
 		uint16_t crc_C = ((uint16_t(buffer[58]) << 8) | buffer[59]);  
 //		qDebug() << crc_C << " ? " << crc << Qt::endl;
 		if(crc_C == crc)	emit dataReceived(floats, cntnr);
+		QCoreApplication::processEvents();
+
         }
+//	QCoreApplication::processEvents();
 }
 void UdpHolder::writePendingDatagram()
 {
@@ -233,6 +237,8 @@ void UdpHolder::writePendingDatagram()
 //	uint16_t crc = ((crcR >> 8) & 0x00FF) | ((crcR << 8) & 0xFF00);
 //	std::memcpy(datagram.data() + 38, &crcR, 2);
 	socket_T->writeDatagram(datagram, receiver, receiverPort);
+	QCoreApplication::processEvents();
+
 //	qDebug() << "sent" << Qt::endl;
 }
 void UdpHolder::printTelemetry(const QByteArray &buffer)
@@ -257,6 +263,8 @@ void UdpHolder::printTelemetry(const QByteArray &buffer)
         getStat(buffer);  
 	getLeaks(buffer); 
 	getErrors(buffer);
+	QCoreApplication::processEvents();
+
 }
 void UdpHolder::printDatagram(const QByteArray &buffer)
 {
@@ -290,6 +298,8 @@ float UdpHolder::getFloat(const QByteArray &arr, const std::string &arg)
         std::memcpy(bytes, buf.constData(), 4);
         float float_;
         std::memcpy(&float_, bytes, sizeof(float_));
+	QCoreApplication::processEvents();
+
         return float_;
 }
 std::vector<bool> UdpHolder::getInt(const QByteArray &arr, const std::string &arg)

@@ -50,6 +50,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	connect(m_player, &CamHolder::sig_gotNewDevice, m_recControl_ptr, &RecControl::s_gotNewDev);
 	connect(m_player, &CamHolder::sig_removeItem, m_recControl_ptr, &RecControl::s_removeItem);
 	connect(m_player, &CamHolder::sig_resize, this, &MainWindow::s_resize);
+	connect(m_player, &CamHolder::sig_stream, this, &MainWindow::s_stream);
 
 	connect(m_recControlSecond_ptr, &RecControl::sig_startRec, m_playerSecond, &CamHolder::s_startRec);//?
 	connect(m_recControlSecond_ptr, &RecControl::sig_pauseRec, m_playerSecond, &CamHolder::s_pauseRec);
@@ -57,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	connect(m_playerSecond, &CamHolder::sig_gotNewDevice, m_recControlSecond_ptr, &RecControl::s_gotNewDev);
 	connect(m_playerSecond, &CamHolder::sig_removeItem, m_recControlSecond_ptr, &RecControl::s_removeItem);
 	connect(m_playerSecond, &CamHolder::sig_resize, this, &MainWindow::s_resize);
+	connect(m_playerSecond, &CamHolder::sig_stream, this, &MainWindow::s_streamS);
 
 	connect(m_recControl_ptr, &RecControl::sig_connect, m_player, &CamHolder::s_setDev);
 	connect(m_recControlSecond_ptr, &RecControl::sig_connect, m_playerSecond, &CamHolder::s_setDev);
@@ -65,7 +67,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	connect(m_burninator_ptr, &BurnInator::sig_setDepthPdi, udpHolder, &UdpHolder::s_setDepthPdi);
 	connect(m_burninator_ptr, &BurnInator::sig_rebootBoard, udpHolder, &UdpHolder::s_rebootBoard);
 	connect(m_burninator_ptr, &BurnInator::sig_burnNumbers, udpHolder, &UdpHolder::s_burnNumbers);
-
+	qDebug() << "connections made\n";
 //connect(udpHolder, SIGNAL(dataReceived(float)), this, SLOT(udpDataReceived(float)));
 
 //sig_setDepthPdi(std::array<float, 3> &);
@@ -213,6 +215,16 @@ void MainWindow::initWidgets(QHBoxLayout *grid)
 //	grid->addWidget(t4, 0, 2);
 	grid->addLayout(m_vbox_vctr[0]);
 	grid->addLayout(m_vbox_vctr[1]);
+}
+void MainWindow::s_stream()
+{
+	qDebug() << "called show\n";
+	m_camWindows_vctr[0]->show();
+}
+void MainWindow::s_streamS()
+{
+	qDebug() << "called show\n";
+	m_camWindows_vctr[1]->show();
 }
 void MainWindow::initActions()
 {

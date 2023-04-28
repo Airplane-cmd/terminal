@@ -65,6 +65,7 @@ signals:
 	void sig_gotNewDevice(const std::string &);
 	void sig_removeItem(const std::string &);
 	void sig_resize(double, double);
+	void sig_stream();
 
 
 

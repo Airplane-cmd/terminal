@@ -326,4 +326,5 @@ void CamHolder::stream()
 		m_widthP_d = m_width_d;
 	}
 	QCoreApplication::processEvents();//
+	emit sig_stream();
 }

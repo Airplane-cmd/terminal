@@ -95,5 +95,7 @@ private slots:
 	void udpDataReceived(float roll);
 	void s_showUtilitySettings();
 	void s_resize(double, double);
+	void s_stream();
+	void s_streamS();
 };
 #endif
