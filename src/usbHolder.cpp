@@ -14,7 +14,7 @@
 
 USBHolder::USBHolder(QObject *parent) : QObject(parent)
 {
-	
+//	startJoystickThread();		
 	m_camCount = 2;
 	for(uint8_t i = 0; i < m_camCount; ++i)		m_camPosValues_vctr.push_back(0);
 	m_powerLimit = 50;
@@ -55,6 +55,13 @@ USBHolder::~USBHolder()
 
 
 }
+void USBHolder::startJoystickThread()
+{
+//	m_joystickThread = new QThread();
+//	moveToThread(m_joystickThread);
+//	connect(m_joystickThread, &QThread::started, this, &USBHolder::readJoystickData);
+//	m_joystickThread->start();
+}
 void USBHolder::setPowerLimit(uint8_t vl)
 {
 	if(vl <= 100)	m_powerLimit = vl;
@@ -75,22 +82,22 @@ void USBHolder::readJoystickData()
 	int bytesTransferred = 0;
 	int result = 0;
 //	result = libusb_interrupt_transfer(m_device, 0x81, data_ch, sizeof(data_ch), &bytesTransferred, 0);
-	while(!m_stopThread)
-	{
-		auto future = std::async(std::launch::async, [&]()
-		{
-			result = libusb_interrupt_transfer(m_device, 0x81, data_ch, sizeof(data_ch), &bytesTransferred, 0);
-		});
-		while(future.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
-		{
+//	while(!m_stopThread)
+//	{
+//		auto future = std::async(std::launch::async, [&]()
+//		{
+			result = libusb_interrupt_transfer(m_device, 0x81, data_ch, sizeof(data_ch), &bytesTransferred, 10);
+//		});
+//		while(future.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
+//		{
 			QCoreApplication::processEvents();
-		}
+//		}
 //		qDebug() << "libusb_interrupt_transter returns " << result << Qt::endl;	
 //		qDebug() << "Size: " << bytesTransferred << Qt::endl;
 		if (result == LIBUSB_SUCCESS && bytesTransferred == sizeof(data_ch))
 		{
 //			qDebug() << "here" << Qt::endl;
-			auto fj = {[&](){return int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6]));}};
+//			auto fj = {[&](){return int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6]));}};
 	
 			m_data[0] = uint8_t(-float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6])) - 512) / 512 * 100);//thrusters control values in range -100:100
 			m_data[1] = uint8_t(float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[3] + 256 * (3 - data_ch[4])) - 512) / 512 * 100);
@@ -121,10 +128,18 @@ QCoreApplication::processEvents();
 		{
 //			qDebug() << "Size: " << bytesTransferred << Qt::endl;
 //			qDebug() << libusb_error_name(result) << Qt::endl;
-        		closeDevice();
+//       		closeDevice();
 //		      	openDevice();
 		}
-	}
+		QTimer timer;
+		connect(&timer, &QTimer::timeout, this, &USBHolder::s_processEvents);
+		timer.start(10);
+//		QCoreApplication::exec();
+//	}
+}
+void USBHolder::s_processEvents()
+{
+	QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 }
 void USBHolder::readUSBData()
 {
