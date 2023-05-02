@@ -132,7 +132,7 @@ void CamHolder::s_setWriteFlag(bool flag)
 }
 void CamHolder::s_setDev(const std::string &name)
 {
-	std::cout << "called\n";
+//	std::cout << "called\n";
 	m_activeDev_str = name;
 	m_readState_f = 1;
 }
@@ -316,7 +316,8 @@ void CamHolder::stream()
 	if(m_write_f)	m_videoWriter.write(m_frame_cv);
         m_index++;
 	QImage img(m_frame_cv.data, m_frame_cv.cols, m_frame_cv.rows, m_frame_cv.step, QImage::Format_BGR888);
-	QImage resizedImg = img.scaled(m_widgetWidth_d, m_widgetHeight_d, Qt::KeepAspectRatio);
+	QImage resizedImg;
+	if(!img.isNull())	resizedImg = img.scaled(m_widgetWidth_d, m_widgetHeight_d, Qt::KeepAspectRatio);//?
 	m_videoLabel_ptr->setPixmap(QPixmap::fromImage(resizedImg));
 	m_videoLabel_ptr->adjustSize();
 	if(m_width_d != m_widthP_d || m_height_d != m_heightP_d)

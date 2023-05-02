@@ -218,12 +218,12 @@ void MainWindow::initWidgets(QHBoxLayout *grid)
 }
 void MainWindow::s_stream()
 {
-	qDebug() << "called show\n";
+//	qDebug() << "called show\n";
 	m_camWindows_vctr[0]->show();
 }
 void MainWindow::s_streamS()
 {
-	qDebug() << "called show\n";
+//	qDebug() << "called show\n";
 	m_camWindows_vctr[1]->show();
 }
 void MainWindow::initActions()

@@ -97,7 +97,7 @@ void USBHolder::readJoystickData()
 //		qDebug() << "Size: " << bytesTransferred << Qt::endl;
 		if (result == LIBUSB_SUCCESS && bytesTransferred == sizeof(data_ch))
 		{
-//			qDebug() << "here" << Qt::endl;
+			qDebug() << "here" << Qt::endl;
 //			auto fj = {[&](){return int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6]));}};
 	
 			m_data[0] = uint8_t(-float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6])) - 512) / 512 * 100);//thrusters control values in range -100:100
@@ -116,7 +116,7 @@ void USBHolder::readJoystickData()
 				if(int8_t(m_camPosValues_vctr[i] - m_camStep) > -101) m_camPosValues_vctr[i] -= m_camStep * (uint8_t(data_ch[2 * i + 11]) / 255);
 				data_new[i] = m_camPosValues_vctr[i];
 			}
-			printRawData();
+//			printRawData();
 //			qDebug() << int8_t(data_new[0]) << " " << int8_t(data_new[1]) << '\n';//int8_t(float(data_ch[9] - 128) / 128 * 100) << '\n';
 //			printControlData();
 			QCoreApplication::processEvents();
@@ -171,7 +171,7 @@ void USBHolder::s_openDevice()
 //		qDebug() << Qt::hex << i << " product id: 0x" << descriptor.idProduct << " vendor id: 0x" << descriptor.idVendor << Qt::endl;
         	if(descriptor.idVendor == JOYSTICK_VENDOR_ID && descriptor.idProduct == JOYSTICK_PRODUCT_ID)
 		{
-			qDebug() << "Joystick found:" << Qt::endl;
+//			qDebug() << "Joystick found:" << Qt::endl;
         		if(libusb_open(list[i], &m_device) == LIBUSB_SUCCESS)
 			{
 				m_timerOpen->stop();
@@ -197,7 +197,7 @@ void USBHolder::s_openDevice()
 		}
         
     	}
-	qDebug() << "open device?\n";
+//	qDebug() << "open device?\n";
 	libusb_free_device_list(list, 1);
     	if(m_device == 0)
 	{

@@ -1,6 +1,8 @@
 #include <QString>
 #include <QDebug>
 #include <filesystem>
+#include <fstream>
+#include <iostream>//?
 #include "movementCalibrator.h"
 MCalibrator::MCalibrator(QWidget *parent)
 {
@@ -132,4 +134,25 @@ void MCalibrator::m_setConfigs()
 		if(l_index > m_configMaxIndex)		m_configMaxIndex = l_index;
 		m_fileQcb_ptr->addItem(QString(filename.c_str()));
 	}
+}
+void MCalibrator::s_processNew()
+{
+	if(std::filesystem::exists(m_dirDest))
+	{
+		std::string currentConfigDir = m_dirDest + "config" + std::to_string(m_configMaxIndex++) + '/';
+		std::string dir = "config" + std::to_string(m_configMaxIndex);
+		std::filesystem::create_directory(currentConfigDir);
+		for(uint8_t i = 0; i < 4; ++i)
+		{
+			std::ofstream configFile(currentConfigDir + m_axisNames_arr[i] + std::to_string(m_configMaxIndex));//txt
+			for(int8_t j = -100; j < 101; ++j)
+			{
+				configFile << " " << j << " 0 0 0\n";
+			}
+		}
+		m_fileQcb_ptr->addItem(QString(dir));
+		emit sig_openConfig(QString(dir), m_axisQcb_ptr->currentIndex().text());
+		
+	}
+
 }

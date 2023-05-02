@@ -60,7 +60,7 @@ private:
 	void m_createConfig();
 private slots:
 //	void s_processSet();
-//	void s_processNew();
+	void s_processNew();
 //	void s_storeValues();
 	
 //	void s_selectAxis();
