@@ -69,6 +69,7 @@ void USBHolder::setPowerLimit(uint8_t vl)
 void USBHolder::printRawData()
 {
 	for(int i = 0; i < 22; ++i)	qDebug() << i << ": " << data_ch[i] << Qt::endl;
+	std::system("clear");
 }
 void USBHolder::printControlData()
 {

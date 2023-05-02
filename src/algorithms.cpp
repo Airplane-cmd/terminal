@@ -34,7 +34,7 @@ Algorithms::~Algorithms()
 void Algorithms::initButtons()
 {
 	m_bttns_vctr.push_back(new SpinLayout("Depth", 0, 5, 0, this));
-	m_bttns_vctr.push_back(new SpinLayout("Yaw", -180, 180, 1, this));
+	m_bttns_vctr.push_back(new SpinLayout("Yaw", 0, 360, 1, this));
 //	m_bttns_vctr.push_back(new SpinLayout("Altitude", 0, 5, 1, this));
 //	qDebug() << m_bttns_vctr.size() << Qt::endl;
 }

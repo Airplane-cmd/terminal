@@ -304,4 +304,4 @@ void MainWindow::createMenus()
 	controllers->addAction(settings);
 	lh->writeInLog("Menus created");
 }
-		
+

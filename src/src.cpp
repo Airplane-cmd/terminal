@@ -8,6 +8,7 @@
 #include "spinLayout.h"
 #include "camHolder.h"
 #include "burnInator.h"
+#include "movementCalibrator.h"
 //#include "udpHolder.h"
 int main(int argc, char **argv)
 {
@@ -19,9 +20,9 @@ int main(int argc, char **argv)
 	wndw.resize(scr->geometry().width()/2, scr->geometry().height());
 	wndw.move(0, 0);
 	wndw.show();
-//	CamHolder cum;
+	MCalibrator cum;
 //	cum.resize(640, 480);
-//	cum.show();
+	cum.show();
 //	SpinLayout wndw1("depth", 0, 5, 1);
 //	wndw1.show();
 //	PowerLimit wndw1;
