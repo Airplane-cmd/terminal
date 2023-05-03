@@ -102,7 +102,7 @@ void USBHolder::readJoystickData()
 	
 			m_data[0] = uint8_t(-float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6])) - 512) / 512 * 100);//thrusters control values in range -100:100
 			m_data[1] = uint8_t(float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[3] + 256 * (3 - data_ch[4])) - 512) / 512 * 100);
-			m_data[2] = uint8_t(-float(m_powerLimit) / 100 * float(data_ch[8] - 128) / 128 * 100);
+			m_data[2] = uint8_t(-0.7 * float(m_powerLimit) / 100 * float(data_ch[8] - 128) / 128 * 100);
 			m_data[3] = uint8_t(-float(m_powerLimit) / 100 * float((256 - data_ch[7]) - 128) / 128 * 100);
 
 //			data_new[0] = int8_t(float(data_ch[9] - 128) / 128 * 100);//hardware debug statements

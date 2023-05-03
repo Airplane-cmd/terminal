@@ -42,8 +42,8 @@ private:
 	QComboBox *m_axisQcb_ptr;
 	QComboBox *m_fileQcb_ptr;
 	std::array<QComboBox *, 2> m_qcb_ptr_arr;
-	std::vector<std::array<int8_t, 4>> m_numbers_vctr;
-
+	std::array<std::array<std::array<int8_t, 4>, 202>, 4> m_movementDataRAM_arr;
+	std::array<bool, 202> m_changedStructureElements;
 	QTextEdit *m_viewer_ptr;
 //	QLayoutItem *m_qli_ptr;
 	std::array<QHBoxLayout *, 6> m_hbox_ptr_arr;
@@ -58,14 +58,24 @@ private:
 	void m_setConfigs();
 	void m_checkFolders();
 	void m_createConfig();
+	void m_initNums();
+	
+	std::string m_getFileData(const std::string &, const char);
+	std::string m_getCurrentConfigDir();
+	char m_getCurrentAxis();
+	void m_initStructure();
 private slots:
 //	void s_processSet();
 	void s_processNew();
+	void s_openConfig(const std::string &, const char);
+
+	void s_processQcbChange(int);
 //	void s_storeValues();
 	
 //	void s_selectAxis();
 signals:
 	void sig_setMovement(int8_t, int8_t, int8_t, int8_t);
+	void sig_openConfig(const std::string &, const char);
 
 
 	
