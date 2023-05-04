@@ -42,7 +42,7 @@ private:
 	QComboBox *m_axisQcb_ptr;
 	QComboBox *m_fileQcb_ptr;
 	std::array<QComboBox *, 2> m_qcb_ptr_arr;
-	std::array<std::array<std::array<int8_t, 4>, 202>, 4> m_movementDataRAM_arr;
+	std::array<std::array<std::array<int, 4>, 201>, 4> m_movementDataRAM_arr;
 	std::array<bool, 202> m_changedStructureElements;
 	QTextEdit *m_viewer_ptr;
 //	QLayoutItem *m_qli_ptr;

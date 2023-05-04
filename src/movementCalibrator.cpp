@@ -171,15 +171,36 @@ void MCalibrator::m_initStructure()
 	for(uint8_t i = 0; i < 4; ++i)
 	{
 		fileData = m_getFileData(m_getCurrentConfigDir(), m_axisNames_arr[i]);
-		for(uint8_t j = 0; j < 202; ++j)
+//		qDebug() << fileData.c_str() << '\n';
+		std::istringstream iss(fileData);
+		for(uint8_t j = 0; j < 201; ++j)
 		{
 			for(uint8_t k = 0; k < 4; ++k)
 			{
 
+				if(!(iss >> m_movementDataRAM_arr[i][j][k]))	qDebug() << "Error occured\n"; 
+//				std::getline(iss, line, ' ');
+//				m_movementDataRAM_arr[i][j][k] = std::stoi(line);
 			}
 		}
+		iss.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 	}
+//	std::stringstream ss;
+	for(uint8_t i = 0; i < 4; ++i)
+	{
+		for(uint8_t j = 0; j < 201; ++j)
+		{
+			for(uint8_t k = 0; k < 4; ++k)
+			{
+				std::cout << std::setw(3) << m_movementDataRAM_arr[i][j][k] << " ";//db
+			}
+			std::cout << '\n';
+		}
+		std::cout << '\n';
+	}
+//	std::cout << ss.str();
 }
+m_set
 void MCalibrator::s_processNew()
 {
 	if(std::filesystem::exists(m_dirDest))
@@ -222,7 +243,7 @@ void MCalibrator::s_openConfig(const std::string &configDir, const char axis)
 	m_labels_ptr_arr[0]->setText(QString(axis));
 	uint8_t j = 1;
 	inFile.close();
-*/
+*///m_getFileData
 	m_viewer_ptr->setPlainText(m_getFileData(configDir, axis).c_str());
 	m_labels_ptr_arr[0]->setText(QString(axis));
 	uint8_t j = 1;
@@ -235,7 +256,7 @@ void MCalibrator::s_openConfig(const std::string &configDir, const char axis)
                 m_labels_ptr_arr[j++]->setText(QString(m_axisNames_arr[i]));
                 if(m_axisNames_arr[i] == axis)  --j;
 	}
-	
+	m_initStructure();	
 }
 void MCalibrator::s_processQcbChange(int index)
 {
