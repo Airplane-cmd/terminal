@@ -59,17 +59,20 @@ private:
 	void m_checkFolders();
 	void m_createConfig();
 	void m_initNums();
-	
+	void m_setViewerText();
+
+	std::string m_structToString(const char, bool db = 0);
 	std::string m_getFileData(const std::string &, const char);
 	std::string m_getCurrentConfigDir();
 	char m_getCurrentAxis();
-	void m_initStructure();
+	void m_initStructure(bool db = 0);
 private slots:
 //	void s_processSet();
 	void s_processNew();
 	void s_openConfig(const std::string &, const char);
 
 	void s_processQcbChange(int);
+	void s_onSliderValueChanged(int);
 //	void s_storeValues();
 	
 //	void s_selectAxis();

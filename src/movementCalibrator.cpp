@@ -85,6 +85,7 @@ MCalibrator::MCalibrator(QWidget *parent)
 	{
 		connect(m_sliders_ptr_arr[i], &QSlider::valueChanged, m_nums_ptr_arr[i], &QSpinBox::setValue);
 		connect(m_nums_ptr_arr[i], static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), m_sliders_ptr_arr[i], &QSlider::setValue);
+		if(i > 0)	connect(m_sliders_ptr_arr[i], &QSlider::valueChanged, this, &MCalibrator::s_onSliderValueChanged);
 	}
 	connect(m_newConfigBttn_ptr, &QPushButton::clicked, this, &MCalibrator::s_processNew);
 	connect(this, &MCalibrator::sig_openConfig, this, &MCalibrator::s_openConfig);
@@ -164,7 +165,7 @@ char MCalibrator::m_getCurrentAxis()
 {
 	return m_axisQcb_ptr->currentText().at(0).toLatin1();
 }
-void MCalibrator::m_initStructure()
+void MCalibrator::m_initStructure(bool db)
 {
 	std::string fileData;
 	std::string line;
@@ -185,24 +186,60 @@ void MCalibrator::m_initStructure()
 		}
 		iss.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 	}
-//	std::stringstream ss;
-	for(uint8_t i = 0; i < 4; ++i)
-	{
-		for(uint8_t j = 0; j < 201; ++j)
+//	std::stringstream ss;	
+	if(db)
+	{	
+		for(uint8_t i = 0; i < 4; ++i)
 		{
-			for(uint8_t k = 0; k < 4; ++k)
+			for(uint8_t j = 0; j < 201; ++j)
 			{
-				std::cout << std::setw(3) << m_movementDataRAM_arr[i][j][k] << " ";//db
+				for(uint8_t k = 0; k < 4; ++k)
+				{
+					std::cout << std::setw(3) << m_movementDataRAM_arr[i][j][k] << " ";//db
+				}
+				std::cout << '\n';
 			}
-			std::cout << '\n';
 		}
 		std::cout << '\n';
 	}
 //	std::cout << ss.str();
 }
-m_set
+std::string MCalibrator::m_structToString(const char axis, bool db)
+{
+	std::stringstream ss;
+	int8_t axisIndex = -1;
+	for(uint8_t i = 0; i < m_axisNames_arr.size(); ++i)		axisIndex = (m_axisNames_arr[i] == axis) ? i : 0;
+	if(axisIndex == -1)
+	{
+		qDebug() << "Axis not specified\n";
+		return "";
+	}
+//	if(db)	
+//	{
+		for(uint8_t j = 0; j < 201; ++j)
+		{
+			for(uint8_t k = 0; k < 4; ++k)
+			{
+				ss << m_movementDataRAM_arr[axisIndex][j][k] << ' ';//2d array, fix
+//				std::cout << std::setw(3) << m_movementDataRAM_arr[i][j][k] << " ";//db
+			}
+			ss << '\n';
+		}
+//		std::cout << '\n';
+//	}
+	
+
+	std::string stringStruct = ss.str();
+	qDebug() << stringStruct.c_str() << "fuck you cunt" << '\n';
+	return stringStruct;
+}
+void MCalibrator::m_setViewerText()
+{
+	m_viewer_ptr->setPlainText(m_structToString(m_getCurrentAxis()).c_str());
+}
 void MCalibrator::s_processNew()
 {
+	m_initStructure();
 	if(std::filesystem::exists(m_dirDest))
 	{
 		std::string currentConfigDir = m_dirDest + "config" + std::to_string(++m_configMaxIndex) + '/';
@@ -244,7 +281,10 @@ void MCalibrator::s_openConfig(const std::string &configDir, const char axis)
 	uint8_t j = 1;
 	inFile.close();
 *///m_getFileData
-	m_viewer_ptr->setPlainText(m_getFileData(configDir, axis).c_str());
+//	m_viewer_ptr->setPlainText(m_getFileData(configDir, axis).c_str());
+//	m_setViewerText();
+//	m_initStructure();
+	m_setViewerText();
 	m_labels_ptr_arr[0]->setText(QString(axis));
 	uint8_t j = 1;
 
@@ -256,7 +296,7 @@ void MCalibrator::s_openConfig(const std::string &configDir, const char axis)
                 m_labels_ptr_arr[j++]->setText(QString(m_axisNames_arr[i]));
                 if(m_axisNames_arr[i] == axis)  --j;
 	}
-	m_initStructure();	
+//	m_initStructure();	
 }
 void MCalibrator::s_processQcbChange(int index)
 {
@@ -264,4 +304,35 @@ void MCalibrator::s_processQcbChange(int index)
 	std::string dir = m_dirDest + m_fileQcb_ptr->currentText().toStdString() + '/';
 	qDebug() << dir.c_str() << '\n';
 	emit sig_openConfig(dir.c_str(), m_axisQcb_ptr->currentText().at(0).toLatin1());
+
+}
+void MCalibrator::s_onSliderValueChanged(int vl)
+{
+	QSlider *slider = qobject_cast<QSlider *>(sender());
+	if(slider == 0)
+	{
+		return;
+	}
+	int sliderIndex = -1;
+	int8_t axisIndex = -1;
+	bool sliderFound = 0;
+	bool axisFound = 0;
+	char axis = m_getCurrentAxis();
+	for(uint8_t i = 0; i < m_sliders_ptr_arr.size(); ++i)
+	{
+		if(sliderFound && axisFound)	break;
+		if(m_sliders_ptr_arr[i] == slider && !sliderFound)
+		{
+			sliderIndex = i;
+		}
+		if(m_axisNames_arr[i] == m_getCurrentAxis() && !axisFound)
+		{
+			axisIndex = i;
+		}
+	}
+	m_movementDataRAM_arr[axisIndex][m_sliders_ptr_arr[0]->value() + 100][sliderIndex] = vl;
+	m_setViewerText();
+	qDebug() << m_getCurrentAxis() << ' ' << axisIndex << ' ' << sliderIndex << '\n';
+
+
 }
