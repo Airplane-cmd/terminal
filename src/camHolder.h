@@ -18,7 +18,8 @@ public:
 	explicit CamHolder(QWidget *parent = 0);
 //	~CamHolder();
 //	void stream();
-
+protected:
+	virtual void resizeEvent(QResizeEvent *eve) override;
 private:
 	std::shared_ptr<QLabel> m_videoLabel_ptr;
 	QTimer *m_timer_ptr;//std::shared_ptr<QTimer> m_timer_ptr;
@@ -35,6 +36,10 @@ private:
 	std::string getDevInfo(const std::string &path);
 	double m_height_d;
 	double m_width_d;
+	double m_heightP_d;
+	double m_widthP_d;
+	double m_widgetWidth_d;
+	double m_widgetHeight_d;
 	cv::VideoWriter m_videoWriter;
 	double m_framerate_d;
 
@@ -44,6 +49,9 @@ private:
 	std::vector<std::string> m_dev_vctr;
 public:
 	bool connect_(int cam = 1);
+	double height_d = 200;
+	double width_d = 200;
+
 public slots:
 	void stream();
 	void s_stopRec();
@@ -56,6 +64,8 @@ public slots:
 signals:
 	void sig_gotNewDevice(const std::string &);
 	void sig_removeItem(const std::string &);
+	void sig_resize(double, double);
+	void sig_stream();
 
 
 

@@ -82,4 +82,5 @@ void RecControl::s_removeItem(const std::string &item)
 void RecControl::s_emitConnection(QListWidgetItem *dev)
 {
 	emit sig_connect(std::string(dev->text().toStdString()));
+	qDebug() << "signal emited\n";
 }

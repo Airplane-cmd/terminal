@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QTimer>
 #include <QByteArray>
+#include <QThread>
 
 #include <atomic>
 #include <thread>
@@ -24,9 +25,12 @@ private:
 	uint8_t m_powerLimit;
 	libusb_device_handle* m_device;
 	QTimer* m_timer;
+	QTimer* m_timerOpen;
 	QByteArray m_data;
 	QByteArray data_new;
 	unsigned char data_ch[22];
+	bool m_state_f = 0;
+	QThread *m_joystickThread;
 
 	void printRawData();
 	void printControlData();
@@ -34,11 +38,14 @@ private:
 	bool openDevice();
 	void closeDevice();
 	void readUSBData();
+	void startJoystickThread();
 
 	std::atomic<bool> m_stopThread{0};
 	std::thread *m_thread;
 private slots:
     	void readJoystickData();
+	void s_openDevice();
+	void s_processEvents();
 public slots:
 	void setPowerLimit(uint8_t);
 

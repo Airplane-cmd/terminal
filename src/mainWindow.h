@@ -81,7 +81,11 @@ private:
 	USBHolder *usbHolder;
 	CamHolder *m_player;
 	RecControl *m_recControl_ptr;
+	CamHolder *m_playerSecond;
+	RecControl *m_recControlSecond_ptr;
 
+	std::vector<QMainWindow *> m_camWindows_vctr;
+	
 	void createMenus();
 	void initActions();
 	void initWidgetsMenu();
@@ -90,5 +94,8 @@ private slots:
 	void showTelemetryWindow();
 	void udpDataReceived(float roll);
 	void s_showUtilitySettings();
+	void s_resize(double, double);
+	void s_stream();
+	void s_streamS();
 };
 #endif

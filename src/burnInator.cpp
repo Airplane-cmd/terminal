@@ -42,6 +42,7 @@ BurnInator::BurnInator(QWidget *parent) : QWidget(parent)
 	connect(m_setBttn_ptr, &QPushButton::clicked, this, &BurnInator::s_processApply);
 	connect(m_burnBttn_ptr, &QPushButton::clicked, this, &BurnInator::s_burnNumbers);
 	connect(m_rebootBttn_ptr, &QPushButton::clicked, this, &BurnInator::s_rebootBoard);
+	
 
 
 }

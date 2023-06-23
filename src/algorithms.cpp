@@ -15,8 +15,9 @@ Algorithms::Algorithms(QWidget *parent) : QWidget(parent)
 	initButtons();
 	for(int i = 0; i < m_bttns_vctr.size(); ++i)	vbox->addWidget(m_bttns_vctr[i]);
 
-	connect(m_bttns_vctr[0], &SpinLayout::activationButtonPressed, this, &Algorithms::emitDepthControlSignal);
 	connect(m_bttns_vctr[1], &SpinLayout::activationButtonPressed, this, &Algorithms::emitYawControlSignal);
+
+	connect(m_bttns_vctr[0], &SpinLayout::activationButtonPressed, this, &Algorithms::emitDepthControlSignal);
 	
 	cntnr->setLayout(vbox);
 	setLayout(vbox);
@@ -33,8 +34,8 @@ Algorithms::~Algorithms()
 }
 void Algorithms::initButtons()
 {
-	m_bttns_vctr.push_back(new SpinLayout("Depth", 0, 5, 0, this));
-	m_bttns_vctr.push_back(new SpinLayout("Yaw", -180, 180, 1, this));
+	m_bttns_vctr.push_back(new SpinLayout("Depth", 0, 360, 0, this));
+	m_bttns_vctr.push_back(new SpinLayout("Yaw", 0, 360, 0, this));
 //	m_bttns_vctr.push_back(new SpinLayout("Altitude", 0, 5, 1, this));
 //	qDebug() << m_bttns_vctr.size() << Qt::endl;
 }
@@ -53,8 +54,9 @@ void Algorithms::emitDepthControlSignal(bool state)
 }
 void Algorithms::emitYawControlSignal(bool state)
 {
-	
-	emit yawControl(state, m_bttns_vctr[1]->getValue());
+	float yaw = m_bttns_vctr[1]->getValue();
+	qDebug() << " yaw: " << yaw << Qt::endl;
+	emit yawControl(state, yaw);
 }
 
 
