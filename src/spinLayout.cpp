@@ -1,5 +1,5 @@
 #include "spinLayout.h"
-SpinLayout::SpinLayout(QString name, float beginRange, float endRange, float startValue, QWidget *parent) : QWidget(parent), m_beginRange(beginRange), m_endRange(endRange), m_startValue(startValue) 
+SpinLayout::SpinLayout(QString name, float beginRange, float endRange, float startValue, float singleStep, QWidget *parent) : QWidget(parent), m_beginRange(beginRange), m_endRange(endRange), m_startValue(startValue), m_singleStep(singleStep) 
 {
 	m_getBttn_ptr = new QPushButton("Sensors data", this);
 	m_getBttn_ptr->setCheckable(1);
@@ -12,7 +12,9 @@ SpinLayout::SpinLayout(QString name, float beginRange, float endRange, float sta
 	m_dsb_ptr = new QDoubleSpinBox(this);
 	m_dsb_ptr->setRange(m_beginRange, endRange);
 	m_dsb_ptr->setValue(m_startValue);
-	m_dsb_ptr->setSingleStep((m_endRange - m_beginRange) / 100);
+	if(m_singleStep == 0)	m_dsb_ptr->setSingleStep((m_endRange - m_beginRange) / 100);
+	else	m_dsb_ptr->setSingleStep(m_singleStep);
+//	m_dsb_ptr->setSingleStep();
 	QHBoxLayout *hbox_ptr = new QHBoxLayout(this);
 	hbox_ptr->setSpacing(15);
 

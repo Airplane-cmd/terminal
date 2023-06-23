@@ -11,6 +11,7 @@
 
 #include <array>
 #include <vector>
+#include <string>
 class BurnInator : public QWidget
 {
 Q_OBJECT
@@ -18,6 +19,7 @@ public:
 	BurnInator(QWidget *parent = 0);
 	~BurnInator();
 private:
+	std::string filename = "../settings/PID";
 	QWidget *m_widget_ptr;
 	QPushButton *m_burnBttn_ptr;
 	QPushButton *m_setBttn_ptr;
@@ -28,6 +30,8 @@ private:
 	QVBoxLayout *m_vbox_ptr;
 	std::array<QLineEdit *, 3> m_qle_arr;
 	std::array<QLabel *, 3> m_labels_arr;
+	uint8_t getConfigData();
+	uint8_t setConfigData(bool temporal) const;
 private slots:
 //	s_setDepthPdi();
 //	s_setYawPdi();

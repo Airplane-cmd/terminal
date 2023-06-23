@@ -1,4 +1,4 @@
-//#include <QString>
+#include <QDebug>
 #include <iostream>
 #include <algorithm>
 #include "burnInator.h"
@@ -46,6 +46,35 @@ BurnInator::BurnInator(QWidget *parent) : QWidget(parent)
 
 
 }
+uint8_t BurnInator::m_getConfigData()
+{
+	std::ifstream inFile(filename);
+	std::string data;
+	std::stringstream buff;
+	buff << inFile.rdbuf();
+	data = buff.str();
+	qDebug() << QString(data.c_str());
+//	QString data_qstr = data.c_str();
+//	qDebug() << "file " << configDir + axis + ".txt content: "<< data.c_str() << '\n';
+	inFile.close();
+	return data;
+}
+uint8_t BurnInator::m_setConfigData(bool temporal)
+{
+	std::ifstream outFile(filename);
+	std::string data;
+	std::stringstream buff;
+
+	buff << inFile.rdbuf();
+	data = buff.str();
+	qDebug() << QString(data.c_str());
+//	QString data_qstr = data.c_str();
+//	qDebug() << "file " << configDir + axis + ".txt content: "<< data.c_str() << '\n';
+	inFile.close();
+	return data;
+
+}
+
 BurnInator::~BurnInator()
 {
 	delete m_grid_ptr;

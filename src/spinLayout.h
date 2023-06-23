@@ -12,7 +12,7 @@ class SpinLayout : public QWidget
 {
 Q_OBJECT
 public:
-	SpinLayout(QString, float beginRange = 0, float endRange = 100, float startValue = 0, QWidget *parent = 0);
+	SpinLayout(QString, float beginRange = 0, float endRange = 100, float startValue = 0, float stepValue = 1, QWidget *parent = 0);
 	~SpinLayout();
 	bool getState();
 	float getValue();
@@ -24,6 +24,7 @@ private:
 	float m_beginRange;
 	float m_endRange;
 	float m_startValue;
+	float m_singleStep;
 	QPushButton *m_button_ptr;
 	QPushButton *m_getBttn_ptr;
 	QDoubleSpinBox *m_dsb_ptr;
