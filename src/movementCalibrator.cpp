@@ -118,14 +118,13 @@ MCalibrator::~MCalibrator()
 void MCalibrator::m_setConfigs()
 {
 
-	if(std::filesystem::exists(m_dir))		qDebug() << "path " << QString(m_dir.c_str()) << " exists\n"; 
-	else
+	if(std::filesystem::exists(m_dir))		qDebug() << "path " << QString(m_dir.c_str()) << " exists\n";	else
 	{
 		qDebug() << "path "<< QString(m_dir.c_str()) << " is anawailable\n";
 		std::filesystem::create_directory(m_dir);
 		
 	}
-	if(std::filesystem::exists(m_dirDest))		qDebug() << "path " << QString(m_dirDest.c_str()) << " exists\n"; 
+	if(std::filesystem::exists(m_dirDest))	qDebug() << "path " << QString(m_dirDest.c_str()) << " exists\n";
 	else
 	{
 		qDebug() << "path " << QString(m_dirDest.c_str()) << " is anawailable\n";
@@ -290,7 +289,6 @@ void MCalibrator::s_openConfig(const std::string &configDir, const char axis)
 
 	for(uint8_t i = 0; i < 4; ++i)
 	{   
-
 		qDebug() << i << " " << j << '\n';
 		if(j > 3) continue;
                 m_labels_ptr_arr[j++]->setText(QString(m_axisNames_arr[i]));

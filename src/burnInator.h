@@ -19,7 +19,10 @@ public:
 	BurnInator(QWidget *parent = 0);
 	~BurnInator();
 private:
-	std::string filename = "../settings/PID";
+	std::string m_dir = "../settings";
+	std::string m_filename = "/PID.txt";
+	std::string m_pidName;
+	uint8_t m_pidIndex;
 	QWidget *m_widget_ptr;
 	QPushButton *m_burnBttn_ptr;
 	QPushButton *m_setBttn_ptr;
@@ -30,14 +33,19 @@ private:
 	QVBoxLayout *m_vbox_ptr;
 	std::array<QLineEdit *, 3> m_qle_arr;
 	std::array<QLabel *, 3> m_labels_arr;
-	uint8_t getConfigData();
-	uint8_t setConfigData(bool temporal) const;
+	std::vector<std::pair<std::array<float, 3>, bool>> m_temporalValues_obj_vctr;
+//	bool apply_f;
+	void m_setupQle();
+	void m_getConfigData();
+	void m_setConfigData();
+	void m_setTempObj();
 private slots:
 //	s_setDepthPdi();
 //	s_setYawPdi();
 	void s_processApply();
 	void s_burnNumbers();
 	void s_rebootBoard();
+	void s_setupQle(QString);
 signals:
 	void sig_setDepthPdi(std::array<float, 3> &);
 	void sig_setYawPdi(std::array<float, 3> &);
