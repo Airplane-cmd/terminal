@@ -99,3 +99,8 @@ void PowerLimit::setSliderValue_D()
 {
 	qs->setValue(100);
 }
+int PowerLimit::getValue()
+{
+	return qs->value();
+}
+

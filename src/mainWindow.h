@@ -11,6 +11,8 @@
 #include <QMainWindow>
 #include <vector>
 #include <QString>
+#include <QByteArray>
+#include <memory>
 
 #include "telemetry.h"
 #include "logs.h"
@@ -60,7 +62,7 @@ private:
 		QAction *m_showUtility_qact_ptr;
 		BurnInator *m_burninator_ptr;
 	std::vector<QAction *> checkBoxes;
-	
+	std::shared_ptr<QPushButton> m_nativeControl_bttn; 		
 	QGridLayout *grid;
 	QHBoxLayout *hbox;
 	std::vector<QVBoxLayout *> m_vbox_vctr;
@@ -85,11 +87,16 @@ private:
 	RecControl *m_recControlSecond_ptr;
 
 	std::vector<QMainWindow *> m_camWindows_vctr;
-	
+	QByteArray m_thrustersNC_qbarr;
+	QByteArray m_camerasNC_qbarr;
+
 	void createMenus();
 	void initActions();
 	void initWidgetsMenu();
-	void initWidgets(QHBoxLayout *);
+	void initWidgets(QHBoxLayout *); 
+protected:
+	void keyPressEvent(QKeyEvent *);
+	void keyReleaseEvent(QKeyEvent *);
 private slots:
 	void showTelemetryWindow();
 	void udpDataReceived(float roll);
@@ -97,5 +104,12 @@ private slots:
 	void s_resize(double, double);
 	void s_stream();
 	void s_streamS();
+	void s_nativeControl();
+	void s_nativeControlOnPressed(QKeyEvent *);
+	void s_nativeControlOnReleased(QKeyEvent *);
+signals:
+	void sig_keyPressed(QKeyEvent *);
+	void sig_keyReleased(QKeyEvent *);
+	void sig_thrustersQba(QByteArray, uint8_t);
 };
 #endif

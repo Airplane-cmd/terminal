@@ -139,7 +139,8 @@ void UdpHolder::setBitInDatagram(bool bit, uint8_t index, char byte)
 }
 void UdpHolder::setValueInDatagram(const QByteArray &data, uint8_t index)
 {
-	std::memcpy(datagram.data() + index, data.constData(), data.size());	
+	std::memcpy(datagram.data() + index, data.constData(), data.size());
+	qDebug() << "subdatagram is set in datagram\n";
 //	datagram[
 }
 void UdpHolder::m_setValueInDatagram(const QByteArray &data, uint8_t index)

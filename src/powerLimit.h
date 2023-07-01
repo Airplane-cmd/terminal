@@ -23,6 +23,7 @@ private slots:
 public:
 	PowerLimit(QWidget *parent = 0);
 	~PowerLimit();
+	int getValue();
 signals:
 	void setForce(uint8_t);
 };

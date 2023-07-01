@@ -25,6 +25,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 //	grid = new QGridLayout(central);
 	hbox = new QHBoxLayout(central);
 //	grid->setColumnMinimumWidth(0, 0);
+	m_thrustersNC_qbarr.resize(4);
+	m_camerasNC_qbarr.resize(4);
 	initWidgets(hbox);
 	
 	createMenus();
@@ -67,6 +69,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	connect(m_burninator_ptr, &BurnInator::sig_setDepthPdi, udpHolder, &UdpHolder::s_setDepthPdi);
 	connect(m_burninator_ptr, &BurnInator::sig_rebootBoard, udpHolder, &UdpHolder::s_rebootBoard);
 	connect(m_burninator_ptr, &BurnInator::sig_burnNumbers, udpHolder, &UdpHolder::s_burnNumbers);
+
+	connect(m_nativeControl_bttn.get(), &QPushButton::clicked, this, &MainWindow::s_nativeControl);
+	connect(this, &MainWindow::sig_keyPressed, this, &MainWindow::s_nativeControlOnPressed);
+	connect(this, &MainWindow::sig_keyReleased, this, &MainWindow::s_nativeControlOnReleased);
+
 	qDebug() << "connections made\n";
 //connect(udpHolder, SIGNAL(dataReceived(float)), this, SLOT(udpDataReceived(float)));
 
@@ -120,6 +127,14 @@ MainWindow::~MainWindow()
 	delete udpHolder;
 	for(QMainWindow *it : m_camWindows_vctr)	delete it;
 }
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+	emit sig_keyPressed(event);
+}
+void MainWindow::keyReleaseEvent(QKeyEvent *event)
+{
+	emit sig_keyReleased(event);
+}
 void MainWindow::s_resize(double width, double height)
 {
 	if(m_camWindows_vctr.size() != 0)
@@ -161,7 +176,8 @@ void MainWindow::initWidgets(QHBoxLayout *grid)
 	m_recControl_ptr = new RecControl;
 	m_playerSecond = new CamHolder;
 	m_recControlSecond_ptr = new RecControl;
-
+	m_nativeControl_bttn = std::make_shared<QPushButton>("Native control", this);
+	m_nativeControl_bttn->setCheckable(1);
 //	m_player->resize(1000, 1000);
 	QWidget *empty = new QWidget(this);
 	empty->setMaximumWidth(400);
@@ -173,7 +189,9 @@ void MainWindow::initWidgets(QHBoxLayout *grid)
 	m_vbox_vctr[0]->addWidget(alg);//, 4, 0);
 	m_vbox_vctr[0]->addWidget(m_recControl_ptr);
 	m_vbox_vctr[0]->addWidget(m_recControlSecond_ptr);
+	m_vbox_vctr[0]->addWidget(m_nativeControl_bttn.get());
 	m_vbox_vctr[0]->addWidget(empty);//, 5, 0, 2, 1);
+	
 //	CamHolder *cam(m_player);
 	QMainWindow *&window = m_camWindows_vctr[0];
 	window->resize(m_player->width_d, m_player->height_d);
@@ -304,4 +322,100 @@ void MainWindow::createMenus()
 	controllers->addAction(settings);
 	lh->writeInLog("Menus created");
 }
+void MainWindow::s_nativeControl()
+{
+	if(m_nativeControl_bttn->isChecked())
+	{
+		connect(this, &MainWindow::sig_thrustersQba, udpHolder, &UdpHolder::setValueInDatagram); 
+		qDebug() << "connections of native control system created\n";
+	}
+	else
+	{
+		disconnect(this, &MainWindow::sig_thrustersQba, udpHolder, &UdpHolder::setValueInDatagram); 
+		qDebug() << "connection of native control system destroyed\n";
+	}
+}
+void MainWindow::s_nativeControlOnPressed(QKeyEvent *event)
+{
+	int8_t value;
+	uint8_t index;
+	if(event->isAutoRepeat())	return;
+	switch(event->key())
+	{
+		case(87):
+			index = 0;
+			value = 1;
+			break;
+		case(65):
+			index = 1;
+			value = -1;
+			break;
+		case(83):
+			index = 0;
+			value = -1;
+			break;
+		case(68):
+			index = 1;
+			value = 1;
+			break;
+		case(81):
+			index = 2;
+			value = -1;
+			break;
+		case(69):
+			index = 2;
+			value = 1;
+			break;
+		case(16777248):
+			index = 3;
+			value = 1;
+			break;
+		case(16777249):
+			index = 3;
+			value = -1;
+			break;
+		default:
+			return;
+	}
+	m_thrustersNC_qbarr[index] = value * pl->getValue();	
+	qDebug() << "key pressed" << event->key() << ", value is:" << value * pl->getValue() << "\n";
+	emit sig_thrustersQba(m_thrustersNC_qbarr, 2);
+}
+void MainWindow::s_nativeControlOnReleased(QKeyEvent *event)
+{
+	uint8_t index;
+	if(event->isAutoRepeat())	return;
+	switch(event->key())
+	{
+		case(87):
+			index = 0;
+			break;
+		case(65):
+			index = 1;
+			break;
+		case(83):
+			index = 0;
+			break;
+		case(68):
+			index = 1;
+			break;
+		case(81):
+			index = 2;
+			break;
+		case(69):
+			index = 2;
+			break;
+		case(16777248):
+			index = 3;
+			break;
+		case(16777249):
+			index = 3;
+			break;
+		default:
+			return;
+	}
+	m_thrustersNC_qbarr[index] = 0;
+	qDebug() << "key released" << event->key() << "\n";
+	emit sig_thrustersQba(m_thrustersNC_qbarr, 2);
 
+}
