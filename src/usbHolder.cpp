@@ -16,7 +16,11 @@ USBHolder::USBHolder(QObject *parent) : QObject(parent)
 {
 //	startJoystickThread();		
 	m_camCount = 2;
-	for(uint8_t i = 0; i < m_camCount; ++i)		m_camPosValues_vctr.push_back(0);
+	for(uint8_t i = 0; i < m_camCount; ++i)
+	{
+		m_camPosValues_vctr.push_back(0);
+		m_previousCamPosValues_vctr.push_back(0);
+	}
 	m_powerLimit = 50;
 	m_device = 0;
 	m_camStep = 10;
@@ -95,26 +99,41 @@ void USBHolder::readJoystickData()
 //		}
 //		qDebug() << "libusb_interrupt_transter returns " << result << Qt::endl;	
 //		qDebug() << "Size: " << bytesTransferred << Qt::endl;
-		if (result == LIBUSB_SUCCESS && bytesTransferred == sizeof(data_ch))
-		{
-			qDebug() << "here" << Qt::endl;
+	if (result == LIBUSB_SUCCESS && bytesTransferred == sizeof(data_ch))
+	{
+		qDebug() << "here" << Qt::endl;
 //			auto fj = {[&](){return int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6]));}};
 	
-			m_data[0] = uint8_t(-float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6])) - 512) / 512 * 100);//thrusters control values in range -100:100
-			m_data[1] = uint8_t(float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[3] + 256 * (3 - data_ch[4])) - 512) / 512 * 100);
-			m_data[2] = uint8_t(-0.7 * float(m_powerLimit) / 100 * float(data_ch[8] - 128) / 128 * 100);
-			m_data[3] = uint8_t(-float(m_powerLimit) / 100 * float((256 - data_ch[7]) - 128) / 128 * 100);
+		m_data[0] = uint8_t(-float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6])) - 512) / 512 * 100);//thrusters control values in range -100:100
+		m_data[1] = uint8_t(float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[3] + 256 * (3 - data_ch[4])) - 512) / 512 * 100);
+		m_data[2] = uint8_t(-0.7 * float(m_powerLimit) / 100 * float(data_ch[8] - 128) / 128 * 100);
+		m_data[3] = uint8_t(-float(m_powerLimit) / 100 * float((256 - data_ch[7]) - 128) / 128 * 100);
 
 //			data_new[0] = int8_t(float(data_ch[9] - 128) / 128 * 100);//hardware debug statements
 //			data_new[1] = int8_t(float(data_ch[9] - 128) / 128 * 100);
 
-			data_new[3] = (data_ch[9] < 100) ? -100 : (((data_ch[9]) > 156) ? 100 : 0);//int8_t(float(data_ch[9] - 128) / 128 * 100);//nt8_t(int(int8_t(data_ch[9]) - 128) / 128 * 100); //uint8_t(int(int8_t(data_ch[9]) - 128) / 128 * 100);
-			data_new[2] = int8_t((data_ch[16] == 255) ? 100 : ((data_ch[17] == 255) ? -100 : 0));
-			for(uint8_t i = 0; i < m_camCount; ++i)//cams control values
+		data_new[3] = (data_ch[9] < 100) ? 100 : (((data_ch[9]) > 156) ? -100 : 0);//int8_t(float(data_ch[9] - 128) / 128 * 100);//nt8_t(int(int8_t(data_ch[9]) - 128) / 128 * 100); //uint8_t(int(int8_t(data_ch[9]) - 128) / 128 * 100);
+		data_new[2] = int8_t((data_ch[16] == 255) ? -100 : ((data_ch[17] == 255) ? 100 : 0));
+		for(uint8_t i = 0; i < m_camCount; ++i)//cams control values
+		{
+			if(int8_t(m_camPosValues_vctr[i] + m_camStep) < 101)
 			{
-				if(int8_t(m_camPosValues_vctr[i] + m_camStep) < 101) m_camPosValues_vctr[i] += m_camStep * (uint8_t(data_ch[2 * i + 10]) / 255);
-				if(int8_t(m_camPosValues_vctr[i] - m_camStep) > -101) m_camPosValues_vctr[i] -= m_camStep * (uint8_t(data_ch[2 * i + 11]) / 255);
-				data_new[i] = m_camPosValues_vctr[i];
+				m_previousCamPosValues_vctr[i] = m_camPosValues_vctr[i];
+				m_camPosValues_vctr[i] += m_camStep * (uint8_t(data_ch[2 * i + 10]) / 255);
+			}
+			if(int8_t(m_camPosValues_vctr[i] - m_camStep) > -101)
+			{
+				m_previousCamPosValues_vctr[i] = m_camPosValues_vctr[i];
+				m_camPosValues_vctr[i] -= m_camStep * (uint8_t(data_ch[2 * i + 11]) / 255);
+			}
+			if(m_camPosValues_vctr[i] != m_previousCamPosValues_vctr[i])	m_camerasPositionsChanged_f = 1;
+			data_new[i] = m_camPosValues_vctr[i];		
+			if(m_camerasPositionsChanged_f)
+			{
+				std::array<int8_t, 2> camerasPositions;
+				for(uint8_t i = 0; i < 2; ++i)	camerasPositions[i] = m_camPosValues_vctr[i];
+				emit sig_camerasPositions(camerasPositions);
+				m_camerasPositionsChanged_f = 0;
 			}
 //			printRawData();
 //			qDebug() << int8_t(data_new[0]) << " " << int8_t(data_new[1]) << '\n';//int8_t(float(data_ch[9] - 128) / 128 * 100) << '\n';
@@ -122,19 +141,19 @@ void USBHolder::readJoystickData()
 			QCoreApplication::processEvents();
 			emit joystickData(m_data, 2);
 			emit joystickData(data_new, 29);
-QCoreApplication::processEvents();
-
-       		}	
-		else
-		{
+			QCoreApplication::processEvents();
+		}
+    }	
+	else
+	{
 //			qDebug() << "Size: " << bytesTransferred << Qt::endl;
 //			qDebug() << libusb_error_name(result) << Qt::endl;
 //       		closeDevice();
 //		      	openDevice();
-		}
-		QTimer timer;
-		connect(&timer, &QTimer::timeout, this, &USBHolder::s_processEvents);
-		timer.start(10);
+	}
+	QTimer timer;
+	connect(&timer, &QTimer::timeout, this, &USBHolder::s_processEvents);
+	timer.start(10);
 //		QCoreApplication::exec();
 //	}
 }
@@ -179,13 +198,13 @@ void USBHolder::s_openDevice()
 //				m_state_f = 1;
 //				qDebug() <<"Correct product id: " << descriptor.idProduct << Qt::endl;
 				if(libusb_kernel_driver_active(m_device, 0) == 1)
+        		{
+        			int result = libusb_detach_kernel_driver(m_device, 0);
+        			if(result == LIBUSB_SUCCESS)
         			{
-        				int result = libusb_detach_kernel_driver(m_device, 0);
-        				if(result == LIBUSB_SUCCESS)
-        				{
-        					qDebug() << "Kernel driver detached successfully";
-            				}
-        				else	qDebug() << "Error detaching kernel driver:" << libusb_error_name(result) << Qt::endl;
+        				qDebug() << "Kernel driver detached successfully";
+            		}
+        			else	qDebug() << "Error detaching kernel driver:" << libusb_error_name(result) << Qt::endl;
 				}
 				break;
 			}
@@ -217,5 +236,13 @@ void USBHolder::closeDevice()
         m_device = 0;
     }
 }
-
+void USBHolder::s_setCamerasPositions(const std::array<int8_t, 2> &camerasPositions)
+{
+	for(uint8_t i = 0; i < 2; ++i)
+	{
+		m_camPosValues_vctr[i] = camerasPositions[i];
+		m_previousCamPosValues_vctr[i] = camerasPositions[i];
+		qDebug() << "value set in usbHolder: " << camerasPositions[i] << '\n';
+	}
+}
 

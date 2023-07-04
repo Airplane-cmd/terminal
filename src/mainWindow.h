@@ -78,6 +78,7 @@ private:
 
 	bool gotLogInfo;
 	static QString curLog;
+	std::array<int8_t, 2> m_camerasPositions_arr;//native control property 
 	
 	UdpHolder *udpHolder;
 	USBHolder *usbHolder;
@@ -107,9 +108,14 @@ private slots:
 	void s_nativeControl();
 	void s_nativeControlOnPressed(QKeyEvent *);
 	void s_nativeControlOnReleased(QKeyEvent *);
+	void s_setCamerasPositions(const std::array<int8_t, 2> &);
+
 signals:
 	void sig_keyPressed(QKeyEvent *);
 	void sig_keyReleased(QKeyEvent *);
 	void sig_thrustersQba(QByteArray, uint8_t);
+	void sig_camerasQba(QByteArray, uint8_t);
+	void sig_camerasPositionChanged(const std::array<int8_t, 2> &);
+
 };
 #endif

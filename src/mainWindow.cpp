@@ -73,7 +73,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	connect(m_nativeControl_bttn.get(), &QPushButton::clicked, this, &MainWindow::s_nativeControl);
 	connect(this, &MainWindow::sig_keyPressed, this, &MainWindow::s_nativeControlOnPressed);
 	connect(this, &MainWindow::sig_keyReleased, this, &MainWindow::s_nativeControlOnReleased);
-
+	connect(this, &MainWindow::sig_camerasPositionChanged, usbHolder, &USBHolder::s_setCamerasPositions);
+	connect(usbHolder, &USBHolder::sig_camerasPositions, this, &MainWindow::s_setCamerasPositions);
 	qDebug() << "connections made\n";
 //connect(udpHolder, SIGNAL(dataReceived(float)), this, SLOT(udpDataReceived(float)));
 
@@ -327,11 +328,13 @@ void MainWindow::s_nativeControl()
 	if(m_nativeControl_bttn->isChecked())
 	{
 		connect(this, &MainWindow::sig_thrustersQba, udpHolder, &UdpHolder::setValueInDatagram); 
+		connect(this, &MainWindow::sig_camerasQba, udpHolder, &UdpHolder::setValueInDatagram); 
 		qDebug() << "connections of native control system created\n";
 	}
 	else
 	{
 		disconnect(this, &MainWindow::sig_thrustersQba, udpHolder, &UdpHolder::setValueInDatagram); 
+		disconnect(this, &MainWindow::sig_camerasQba, udpHolder, &UdpHolder::setValueInDatagram); 
 		qDebug() << "connection of native control system destroyed\n";
 	}
 }
@@ -339,52 +342,147 @@ void MainWindow::s_nativeControlOnPressed(QKeyEvent *event)
 {
 	int8_t value;
 	uint8_t index;
-	if(event->isAutoRepeat())	return;
+	bool emitThrustersSignal_f = 1;
+	bool emitCamerasSignal_f = 1;
+	bool autorepeat_f = 0;
+	std::array<int, 4> autorepeatingKeys = {75, 76, 59, 39};
+	if(event->isAutoRepeat())
+	{
+		for(uint8_t i = 0; i < 4; ++i)	if(event->key() == autorepeatingKeys[i])	autorepeat_f = 1;
+		if(!autorepeat_f)	return;
+	}
 	switch(event->key())
 	{
 		case(87):
 			index = 0;
-			value = 1;
+			value = -1;
 			break;
 		case(65):
 			index = 1;
-			value = -1;
+			value = 1;
 			break;
 		case(83):
 			index = 0;
-			value = -1;
+			value = 1;
 			break;
 		case(68):
 			index = 1;
-			value = 1;
+			value = -1;
 			break;
 		case(81):
 			index = 2;
-			value = -1;
+			value = 1;
 			break;
 		case(69):
 			index = 2;
-			value = 1;
+			value = -1;
 			break;
 		case(16777248):
 			index = 3;
-			value = 1;
+			value = -1;
 			break;
 		case(16777249):
 			index = 3;
-			value = -1;
+			value = 1;
 			break;
 		default:
-			return;
+			emitThrustersSignal_f = 0;
 	}
-	m_thrustersNC_qbarr[index] = value * pl->getValue();	
-	qDebug() << "key pressed" << event->key() << ", value is:" << value * pl->getValue() << "\n";
-	emit sig_thrustersQba(m_thrustersNC_qbarr, 2);
+	qDebug() << "key pressed" << event->key() << '\n';//db
+	if(emitThrustersSignal_f)
+	{
+		m_thrustersNC_qbarr[index] = value * pl->getValue();	
+		qDebug() << "key pressed" << event->key() << ", value is:" << value * pl->getValue() << "\n";
+		emit sig_thrustersQba(m_thrustersNC_qbarr, 2);
+		if(m_nativeControl_bttn->isChecked())	qDebug() << "thrusters signal was emited\n";//db
+	}
+//	value = 0;
+	switch(event->key())
+	{
+		case(73):
+			index = 2;
+			value = 100;
+			break;
+		case(79):
+			index = 2;
+			value = -100;
+			break;
+		case(80):
+			index = 3;
+			value = 100;
+			break;
+		case(91):
+			index = 3;
+			value = -100;
+			break;
+		case(75):
+			index = 0;
+			if(m_camerasPositions_arr[index] > -100)
+			{
+				if(m_nativeControl_bttn->isChecked())	m_camerasPositions_arr[index] -= 1;
+				value = m_camerasPositions_arr[index];
+//				emit sig_camerasPositionChanged(m_camerasPositions_arr);
+			}
+			break;
+		case(76):
+			index = 0;
+			if(m_camerasPositions_arr[index] < 100)
+			{
+				if(m_nativeControl_bttn->isChecked())	m_camerasPositions_arr[index] += 1;
+				value = m_camerasPositions_arr[index];
+//				emit sig_camerasPositionChanged(m_camerasPositions_arr);
+
+			}
+			break;
+		case(59):
+			index = 1;
+			if(m_camerasPositions_arr[index] > -100)
+			{
+				if(m_nativeControl_bttn->isChecked())	m_camerasPositions_arr[index] -= 1;
+				value = m_camerasPositions_arr[index];
+//				emit sig_camerasPositionChanged(m_camerasPositions_arr);
+			}
+			break;
+		case(39):
+			index = 1;
+			if(m_camerasPositions_arr[index] < 100)
+			{
+				if(m_nativeControl_bttn->isChecked())	m_camerasPositions_arr[index] += 1;
+				value = m_camerasPositions_arr[index];
+//				emit sig_camerasPositionChanged(m_camerasPositions_arr);
+			}
+			break;
+		default:
+			emitCamerasSignal_f = 0;
+	}
+	if(emitCamerasSignal_f)
+	{
+//		m_camerasNC_qbarr[index] = (autorepeat_f) ? value : value * pl->getValue();
+		m_camerasNC_qbarr[index] = value;	
+		emit sig_camerasPositionChanged(m_camerasPositions_arr);
+		qDebug() << "value is:" << value << "\n";
+		emit sig_camerasQba(m_camerasNC_qbarr, 29);
+		if(m_nativeControl_bttn->isChecked())	qDebug() << "cameras signal was emited\n";//db
+//		value = 0;
+
+	}
+
+
 }
 void MainWindow::s_nativeControlOnReleased(QKeyEvent *event)
 {
 	uint8_t index;
-	if(event->isAutoRepeat())	return;
+	int8_t value;
+	bool emitThrustersSignal_f = 1;
+	bool emitCamerasSignal_f = 1;
+	bool autorepeat_f = 0;
+	std::array<int, 4> autorepeatingKeys = {75, 76, 59, 39};
+	if(event->isAutoRepeat())//?
+	{
+		for(uint8_t i = 0; i < 4; ++i)	if(event->key() == autorepeatingKeys[i])	autorepeat_f = 1;
+		if(!autorepeat_f)	return;
+	}
+	qDebug() << "key relesaed" << event->key() << '\n';
 	switch(event->key())
 	{
 		case(87):
@@ -412,10 +510,75 @@ void MainWindow::s_nativeControlOnReleased(QKeyEvent *event)
 			index = 3;
 			break;
 		default:
-			return;
+			emitThrustersSignal_f = 0;
+			
 	}
-	m_thrustersNC_qbarr[index] = 0;
-	qDebug() << "key released" << event->key() << "\n";
-	emit sig_thrustersQba(m_thrustersNC_qbarr, 2);
-
+	if(emitThrustersSignal_f)
+	{
+		m_thrustersNC_qbarr[index] = 0;
+		emit sig_thrustersQba(m_thrustersNC_qbarr, 2);
+		if(m_nativeControl_bttn->isChecked()) qDebug() << "thrusters release signal was emited\n";//db
+	}
+	switch(event->key())
+	{
+		case(73):
+			index = 2;
+			value = 0;
+			break;
+		case(79):
+			index = 2;
+			value = 0;
+			break;
+		case(80):
+			index = 3;
+			value = 0;
+			break;
+		case(91):
+			index = 3;
+			value = 0;
+			break;
+		case(75):
+			index = 0;
+//			if(m_camerasPositions_arr[index] > -100)
+//			{
+				value = m_camerasPositions_arr[index];
+//			}
+			break;
+		case(76):
+			index = 0;
+//			if(m_camerasPositions_arr[index] < 100)
+//			{
+				value = m_camerasPositions_arr[index];
+//			}
+			break;
+		case(59):
+			index = 1;
+//			if(m_camerasPositions_arr[index] > -100)
+//			{
+				value = m_camerasPositions_arr[index];
+//			}
+			break;
+		case(39):
+			index = 1;
+//			if(m_camerasPositions_arr[index] < 100)
+//			{
+				value = m_camerasPositions_arr[index];
+//			}
+			
+			break;
+		default:
+			emitCamerasSignal_f = 0;
+			
+	}
+	if(emitCamerasSignal_f)
+	{
+		m_camerasNC_qbarr[index] = value;
+		if(autorepeat_f)	qDebug() << "camera position: " << value;
+		emit sig_camerasQba(m_camerasNC_qbarr, 29);
+		if(m_nativeControl_bttn->isChecked())	qDebug() << "cameras release signal was emmited\n";//db
+	}
+}
+void MainWindow::s_setCamerasPositions(const std::array<int8_t, 2> &camerasPositions)
+{
+	for(uint8_t i = 0; i < 2; ++i) m_camerasPositions_arr[i] = camerasPositions[i];
 }

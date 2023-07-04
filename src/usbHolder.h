@@ -8,6 +8,7 @@
 
 #include <atomic>
 #include <thread>
+#include <array>
 
 #include <libusb-1.0/libusb.h>
 class USBHolder : public QObject
@@ -20,7 +21,9 @@ public:
 
 private:
 	uint8_t m_camCount;
+	bool m_camerasPositionsChanged_f;
 	std::vector<uint8_t> m_camPosValues_vctr;
+	std::vector<uint8_t> m_previousCamPosValues_vctr;
 	uint8_t m_camStep;
 	uint8_t m_powerLimit;
 	libusb_device_handle* m_device;
@@ -48,9 +51,11 @@ private slots:
 	void s_processEvents();
 public slots:
 	void setPowerLimit(uint8_t);
+	void s_setCamerasPositions(const std::array<int8_t, 2> &);
 
 signals:
     void joystickData(const QByteArray &, uint8_t);
+    void sig_camerasPositions(const std::array<int8_t, 2> &);
 };
 
 #endif 
