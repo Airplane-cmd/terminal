@@ -24,12 +24,13 @@ USBHolder::USBHolder(QObject *parent) : QObject(parent)
 	m_powerLimit = 50;
 	m_device = 0;
 	m_camStep = 10;
+	m_openDelay = 1000;
 	m_timer = new QTimer(this);
 	m_timerOpen = new QTimer(this);
 //	m_thread = new std::thread(&USBHolder::readJoystickData, this);
 	connect(m_timer, &QTimer::timeout, this, &USBHolder::readJoystickData);
 	connect(m_timerOpen, &QTimer::timeout, this, &USBHolder::s_openDevice);
-	m_timerOpen->start(13);
+	m_timerOpen->start(m_openDelay);
 //	if(openDevice())
 //	{
 //	      	m_timer->start(10);
@@ -72,8 +73,8 @@ void USBHolder::setPowerLimit(uint8_t vl)
 }
 void USBHolder::printRawData()
 {
-	for(int i = 0; i < 22; ++i)	qDebug() << i << ": " << data_ch[i] << Qt::endl;
 	std::system("clear");
+	for(int i = 0; i < 22; ++i)	qDebug() << i << ": " << data_ch[i] << Qt::endl;
 }
 void USBHolder::printControlData()
 {
@@ -81,7 +82,6 @@ void USBHolder::printControlData()
 }
 void USBHolder::readJoystickData()
 {
-
 	m_data.resize(4);//
 	data_new.resize(4);
 	int bytesTransferred = 0;
@@ -91,7 +91,15 @@ void USBHolder::readJoystickData()
 //	{
 //		auto future = std::async(std::launch::async, [&]()
 //		{
-			result = libusb_interrupt_transfer(m_device, 0x81, data_ch, sizeof(data_ch), &bytesTransferred, 10);
+	result = libusb_interrupt_transfer(m_device, 0x81, data_ch, sizeof(data_ch), &bytesTransferred, 10);
+	if(result == -4)	
+	{
+		closeDevice();
+		m_timer->stop();
+		m_timerOpen->start(m_openDelay);
+		return;
+	}
+//			qDebug() << result << '\n';
 //		});
 //		while(future.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
 //		{
@@ -106,7 +114,7 @@ void USBHolder::readJoystickData()
 	
 		m_data[0] = uint8_t(-float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6])) - 512) / 512 * 100);//thrusters control values in range -100:100
 		m_data[1] = uint8_t(float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[3] + 256 * (3 - data_ch[4])) - 512) / 512 * 100);
-		m_data[2] = uint8_t(-0.7 * float(m_powerLimit) / 100 * float(data_ch[8] - 128) / 128 * 100);
+		m_data[2] = uint8_t(-0.5 * float(m_powerLimit) / 100 * float(data_ch[8] - 128) / 128 * 100);//w 07
 		m_data[3] = uint8_t(-float(m_powerLimit) / 100 * float((256 - data_ch[7]) - 128) / 128 * 100);
 
 //			data_new[0] = int8_t(float(data_ch[9] - 128) / 128 * 100);//hardware debug statements
@@ -135,13 +143,22 @@ void USBHolder::readJoystickData()
 				emit sig_camerasPositions(camerasPositions);
 				m_camerasPositionsChanged_f = 0;
 			}
-//			printRawData();
+			printRawData();
 //			qDebug() << int8_t(data_new[0]) << " " << int8_t(data_new[1]) << '\n';//int8_t(float(data_ch[9] - 128) / 128 * 100) << '\n';
 //			printControlData();
 			QCoreApplication::processEvents();
 			emit joystickData(m_data, 2);
 			emit joystickData(data_new, 29);
 			QCoreApplication::processEvents();
+		}
+		for(uint8_t i = 18; i < 22; ++i)
+		{
+			if(data_ch[i] != 0)
+			{
+				m_powerLimit = 25 * (i - 18 + 1);
+				if(i == 21)	m_powerLimit = 10;
+				emit sig_setPowerLimit(m_powerLimit);
+			}
 		}
     }	
 	else
@@ -190,13 +207,13 @@ void USBHolder::s_openDevice()
 //		qDebug() << Qt::hex << i << " product id: 0x" << descriptor.idProduct << " vendor id: 0x" << descriptor.idVendor << Qt::endl;
         	if(descriptor.idVendor == JOYSTICK_VENDOR_ID && descriptor.idProduct == JOYSTICK_PRODUCT_ID)
 		{
-//			qDebug() << "Joystick found:" << Qt::endl;
+			qDebug() << "Joystick found:" << Qt::endl;
         		if(libusb_open(list[i], &m_device) == LIBUSB_SUCCESS)
 			{
 				m_timerOpen->stop();
 				m_timer->start(11);
 //				m_state_f = 1;
-//				qDebug() <<"Correct product id: " << descriptor.idProduct << Qt::endl;
+				qDebug() <<"Correct product id: " << descriptor.idProduct << Qt::endl;
 				if(libusb_kernel_driver_active(m_device, 0) == 1)
         		{
         			int result = libusb_detach_kernel_driver(m_device, 0);
@@ -216,25 +233,30 @@ void USBHolder::s_openDevice()
 		}
         
     	}
-//	qDebug() << "open device?\n";
+	qDebug() << "open device?\n";
 	libusb_free_device_list(list, 1);
     	if(m_device == 0)
 	{
         	libusb_exit(context);
         	return;// false;
     	}
+	qDebug() << "before setting configuration\n"; 
     	libusb_set_configuration(m_device, 1);
+	qDebug() << "Confuguration set\n";
     	libusb_claim_interface(m_device, 0);
+	qDebug() << "Interface claimed\n";
     	return;// true;
 }
 void USBHolder::closeDevice()
 {
+    qDebug() << "closing device\n"; 
     if (m_device != 0)
     {
         libusb_release_interface(m_device, 0);
         libusb_close(m_device);
         m_device = 0;
     }
+    qDebug() << "device is set\n";
 }
 void USBHolder::s_setCamerasPositions(const std::array<int8_t, 2> &camerasPositions)
 {

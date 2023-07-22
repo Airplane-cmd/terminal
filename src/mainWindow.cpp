@@ -34,11 +34,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	
 	udpHolder = new UdpHolder(this);
 	usbHolder = new USBHolder(this);
-//	connect(this, &MainWindow::updateTelemetry, t, &Telemetry::updateTelemetry);
-//	connect(udpHolder, SIGNAL(dataReceived(const std::array<float, 13> , const std::vector<std::vector<bool>> )), t, SLOT(updateTelemetry(const std::array<float, 13> , const std::vector<std::vector<bool>> )));//crazy 
 	connect(udpHolder, &UdpHolder::dataReceived, t, &Telemetry::updateTelemetry);
 	connect(pl, &PowerLimit::setForce, usbHolder, &USBHolder::setPowerLimit);
 	connect(usbHolder, &USBHolder::joystickData, udpHolder, &UdpHolder::setValueInDatagram);
+	connect(usbHolder, &USBHolder::sig_setPowerLimit, pl, &PowerLimit::s_setSliderValue);
 	connect(telemetry_w, &QAction::triggered, this, &MainWindow::showTelemetryWindow);
 	connect(m_showUtility_qact_ptr, &QAction::triggered, this, &MainWindow::s_showUtilitySettings);
 	connect(t, &Telemetry::sendDepth, alg, &Algorithms::setDepth);
@@ -193,16 +192,16 @@ void MainWindow::initWidgets(QHBoxLayout *grid)
 	m_vbox_vctr[0]->addWidget(m_nativeControl_bttn.get());
 	m_vbox_vctr[0]->addWidget(empty);//, 5, 0, 2, 1);
 	
-//	CamHolder *cam(m_player);
+//	CamHolder *cam(m_player);//cringe	
 	QMainWindow *&window = m_camWindows_vctr[0];
 	window->resize(m_player->width_d, m_player->height_d);
 	window->setCentralWidget(m_player);
-	window->show();
+//	window->show();
 
 	QMainWindow *&windowS = m_camWindows_vctr[1];
 	windowS->resize(m_playerSecond->width_d, m_playerSecond->height_d);
 	windowS->setCentralWidget(m_playerSecond);
-	windowS->show();
+//	windowS->show();
 //
 //	m_vbox_vctr[1]->addWidget(m_player);
 
@@ -379,11 +378,11 @@ void MainWindow::s_nativeControlOnPressed(QKeyEvent *event)
 			break;
 		case(16777248):
 			index = 3;
-			value = -1;
+			value = 1;
 			break;
 		case(16777249):
 			index = 3;
-			value = 1;
+			value = -1;
 			break;
 		default:
 			emitThrustersSignal_f = 0;

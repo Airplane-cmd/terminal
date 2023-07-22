@@ -23,7 +23,7 @@ CamHolder::CamHolder(QWidget *parent) : QWidget(parent)
 	m_index = 0;
 	m_write_f = 0;
 	m_writeInit_f = 0;
-	m_framerate_d = 1000 / 20;
+	m_framerate_d = 1000 / 30;
 	m_activeDev_str = "";
 	m_videoLabel_ptr = std::make_shared<QLabel>(this);
 //	m_videoLabel_ptr->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);

@@ -103,4 +103,7 @@ int PowerLimit::getValue()
 {
 	return qs->value();
 }
-
+void PowerLimit::s_setSliderValue(uint8_t vl)
+{
+	qs->setValue(vl);
+}

@@ -26,6 +26,7 @@ private:
 	std::vector<uint8_t> m_previousCamPosValues_vctr;
 	uint8_t m_camStep;
 	uint8_t m_powerLimit;
+	uint32_t m_openDelay;
 	libusb_device_handle* m_device;
 	QTimer* m_timer;
 	QTimer* m_timerOpen;
@@ -56,6 +57,7 @@ public slots:
 signals:
     void joystickData(const QByteArray &, uint8_t);
     void sig_camerasPositions(const std::array<int8_t, 2> &);
+    void sig_setPowerLimit(uint8_t);
 };
 
 #endif 

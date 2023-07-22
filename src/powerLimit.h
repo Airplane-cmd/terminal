@@ -20,6 +20,8 @@ private slots:
 	void setSliderValue_C();
 	void setSliderValue_D();
 	void setLabel();
+public slots:
+	void s_setSliderValue(uint8_t);
 public:
 	PowerLimit(QWidget *parent = 0);
 	~PowerLimit();
