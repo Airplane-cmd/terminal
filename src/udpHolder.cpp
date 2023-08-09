@@ -4,6 +4,7 @@
 
 UdpHolder::UdpHolder(QObject *parent) : QObject{parent}
 {
+	m_stmIP = "192.168.90.1";
 	socket = new QUdpSocket(this);
 	
 //	socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
@@ -45,7 +46,7 @@ void UdpHolder::s_setDepthPdi(std::array<float, 3> &arr)
 	for(uint8_t i = 0; i < 3; ++i)
 	{	
 		uint8_t *bytes = reinterpret_cast<uint8_t *>(&(arr[i]));
-		for(uint8_t j = 0; j < 4; ++j)	data_qba[i * 4 + j + 2] = bytes[3 - j];//?
+		for(uint8_t j = 0; j < 4; ++j)	data_qba[i * 4 + j + 2] = bytes[3 - j];//fine
 	}
 	uint16_t crcR = calculateCRC(data_qba);
 	data_qba[14] = uint8_t(crcR >> 8);
@@ -63,7 +64,7 @@ void UdpHolder::s_setYawPdi(std::array<float, 3> &arr)
 	for(uint8_t i = 0; i < 3; ++i)
 	{	
 		uint8_t *bytes = reinterpret_cast<uint8_t *>(&(arr[i]));
-		for(uint8_t j = 0; j < 4; ++j)	data_qba[i * 4 + j + 2] = bytes[3 - j];//?
+		for(uint8_t j = 0; j < 4; ++j)	data_qba[i * 4 + j + 2] = bytes[3 - j];//fine
 	}
 	uint16_t crcR = calculateCRC(data_qba);
 	data_qba[14] = uint8_t(crcR >> 8);
@@ -71,6 +72,14 @@ void UdpHolder::s_setYawPdi(std::array<float, 3> &arr)
 	socket_T->writeDatagram(data_qba, receiver, receiverPort);
 	qDebug() <<  "datagram with yaw PDI was sent" << '\n';
 
+}
+void UdpHolder::s_setRollPdi(std::array<float, 3> &arr)
+{
+	m_setPdi(112, arr);
+}
+void UdpHolder::s_setPitchPdi(std::array<float, 3> &arr)
+{
+	m_setPdi(113, arr);
 }
 void UdpHolder::sendUtilityDatagram(const std::array<uint8_t, 2> &data)//data[0] -- reset, data[1] -- burn PID on STM32
 {
@@ -100,7 +109,7 @@ void UdpHolder::s_burnNumbers()
 	sendUtilityDatagram(data);
 	qDebug() << "numbers were burnt" << '\n';
 }
-void UdpHolder::setDepthControl(bool state, float data)
+void UdpHolder::s_setDepthControl(bool state, float data)
 {
 	QByteArray data_qbe;
 	data_qbe.resize(4);
@@ -111,7 +120,7 @@ void UdpHolder::setDepthControl(bool state, float data)
 	setBitInDatagram(state, 2, datagram[26]);//4 26
 //	delete []bytes;
 }
-void UdpHolder::setYawControl(bool state, float data)
+void UdpHolder::s_setYawControl(bool state, float data)
 {
 	QByteArray data_qbe;
 	qDebug() << "udpHolder input data: " << data << Qt::endl;
@@ -126,6 +135,15 @@ void UdpHolder::setYawControl(bool state, float data)
 	setBitInDatagram(state, 4, datagram[26]);//2 26
 //	delete []bytes;
 }
+void UdpHolder::s_setRollControl(bool state, float data)
+{
+	m_setControl(0, state);//only bit in bitset, 0 for roll
+}
+void UdpHolder::s_setPitchControl(bool state, float data)
+{
+	m_setControl(1, state);//onli bit in bitset, 1 for pitch
+}
+
 void UdpHolder::setBitInDatagram(bool bit, uint8_t index, char byte)
 {
 	QByteArray cntnr;
@@ -377,5 +395,34 @@ void UdpHolder::getErrors(const QByteArray &arr)
         out << "       Pressure unit:    " << ((vctr[0]) ? "occured\n" : "not occured\n");
         out << "       Orientation unit: " << ((vctr[1]) ? "occured\n" : "not occured\n");
 }
+void UdpHolder::m_setPdi(const int8_t header, std::array<float, 3> &arr)
+{
+	QHostAddress receiver(m_stmIP);
+	QByteArray data_qba;
+	data_qba.resize(16);
+	data_qba[0] = 0;
+	data_qba[1] = header;
+	for(uint8_t i = 0; i < 3; ++i)
+	{	
+		uint8_t *bytes = reinterpret_cast<uint8_t *>(&(arr[i]));
+		for(uint8_t j = 0; j < 4; ++j)	data_qba[i * 4 + j + 2] = bytes[3 - j];//fine
+	}
+	uint16_t crcR = calculateCRC(data_qba);
+	data_qba[14] = uint8_t(crcR >> 8);
+	data_qba[15] = uint8_t((crcR << 8) >> 8);
+	socket_T->writeDatagram(data_qba, receiver, receiverPort);
+	qDebug() <<  "datagram with yaw PDI was sent" << '\n';
 
+
+}
+void UdpHolder::m_setControl(const uint8_t bit, const bool state, const int8_t byteIndex, float data)
+{
+	QByteArray data_qbe;
+	data_qbe.resize(4);
+	uint8_t* bytes = reinterpret_cast<uint8_t*>(&data);
+	for(int i = 0; i < 4; ++i)	data_qbe[i] = bytes[3 - i];//?
+	if(byteIndex != -1)	m_setValueInDatagram(data_qbe, byteIndex);
+	setBitInDatagram(state, bit, datagram[26]);//4 26
+
+}
 

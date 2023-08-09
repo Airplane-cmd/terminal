@@ -42,8 +42,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	connect(m_showUtility_qact_ptr, &QAction::triggered, this, &MainWindow::s_showUtilitySettings);
 	connect(t, &Telemetry::sendDepth, alg, &Algorithms::setDepth);
 	connect(t, &Telemetry::sendYaw, alg, &Algorithms::setYaw);
-	connect(alg, &Algorithms::depthControl, udpHolder, &UdpHolder::setDepthControl);
-	connect(alg, &Algorithms::yawControl, udpHolder, &UdpHolder::setYawControl);
+	connect(alg, &Algorithms::depthControl, udpHolder, &UdpHolder::s_setDepthControl);
+	connect(alg, &Algorithms::yawControl, udpHolder, &UdpHolder::s_setYawControl);
+	connect(alg, &Algorithms::rollControl, udpHolder, &UdpHolder::s_setRollControl);
+	connect(alg, &Algorithms::pitchControl, udpHolder, &UdpHolder::s_setPitchControl);
 
 	connect(m_recControl_ptr, &RecControl::sig_startRec, m_player, &CamHolder::s_startRec);
 	connect(m_recControl_ptr, &RecControl::sig_pauseRec, m_player, &CamHolder::s_pauseRec);
@@ -67,6 +69,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	connect(m_burninator_ptr, &BurnInator::sig_setYawPdi, udpHolder, &UdpHolder::s_setYawPdi);
 	connect(m_burninator_ptr, &BurnInator::sig_setDepthPdi, udpHolder, &UdpHolder::s_setDepthPdi);
 	connect(m_burninator_ptr, &BurnInator::sig_rebootBoard, udpHolder, &UdpHolder::s_rebootBoard);
+	connect(m_burninator_ptr, &BurnInator::sig_setRollPdi, udpHolder, &UdpHolder::s_setRollPdi);
+	connect(m_burninator_ptr, &BurnInator::sig_setPitchPdi, udpHolder, &UdpHolder::s_setPitchPdi);
+
 	connect(m_burninator_ptr, &BurnInator::sig_burnNumbers, udpHolder, &UdpHolder::s_burnNumbers);
 
 	connect(m_nativeControl_bttn.get(), &QPushButton::clicked, this, &MainWindow::s_nativeControl);
@@ -171,7 +176,7 @@ void MainWindow::initWidgets(QHBoxLayout *grid)
 	lh = new LogsHolder(this);
 	pl = new PowerLimit(this);
 	alg = new Algorithms(this);
-
+	alg->setMinimumHeight(200);
 	m_player = new CamHolder;
 	m_recControl_ptr = new RecControl;
 	m_playerSecond = new CamHolder;
@@ -190,7 +195,7 @@ void MainWindow::initWidgets(QHBoxLayout *grid)
 	m_vbox_vctr[0]->addWidget(m_recControl_ptr);
 	m_vbox_vctr[0]->addWidget(m_recControlSecond_ptr);
 	m_vbox_vctr[0]->addWidget(m_nativeControl_bttn.get());
-	m_vbox_vctr[0]->addWidget(empty);//, 5, 0, 2, 1);
+//	m_vbox_vctr[0]->addWidget(empty);//, 5, 0, 2, 1);
 	
 //	CamHolder *cam(m_player);//cringe	
 	QMainWindow *&window = m_camWindows_vctr[0];

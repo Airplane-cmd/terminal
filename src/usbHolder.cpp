@@ -120,8 +120,8 @@ void USBHolder::readJoystickData()
 //			data_new[0] = int8_t(float(data_ch[9] - 128) / 128 * 100);//hardware debug statements
 //			data_new[1] = int8_t(float(data_ch[9] - 128) / 128 * 100);
 
-		data_new[3] = (data_ch[9] < 100) ? 100 : (((data_ch[9]) > 156) ? -100 : 0);//int8_t(float(data_ch[9] - 128) / 128 * 100);//nt8_t(int(int8_t(data_ch[9]) - 128) / 128 * 100); //uint8_t(int(int8_t(data_ch[9]) - 128) / 128 * 100);
-		data_new[2] = int8_t((data_ch[16] == 255) ? -100 : ((data_ch[17] == 255) ? 100 : 0));
+		data_new[2] = (data_ch[9] < 100) ? 100 : (((data_ch[9]) > 156) ? -100 : 0);//int8_t(float(data_ch[9] - 128) / 128 * 100);//nt8_t(int(int8_t(data_ch[9]) - 128) / 128 * 100); //uint8_t(int(int8_t(data_ch[9]) - 128) / 128 * 100);
+		data_new[3] = int8_t((data_ch[16] == 255) ? -100 : ((data_ch[17] == 255) ? 100 : 0));
 		for(uint8_t i = 0; i < m_camCount; ++i)//cams control values
 		{
 			if(int8_t(m_camPosValues_vctr[i] + m_camStep) < 101)

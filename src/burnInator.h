@@ -49,6 +49,9 @@ private slots:
 signals:
 	void sig_setDepthPdi(std::array<float, 3> &);
 	void sig_setYawPdi(std::array<float, 3> &);
+	void sig_setRollPdi(std::array<float, 3> &);
+	void sig_setPitchPdi(std::array<float, 3> &);
+
 	void sig_rebootBoard();
 	void sig_burnNumbers();
 

@@ -11,6 +11,9 @@ BurnInator::BurnInator(QWidget *parent) : QWidget(parent)
 	m_pidQcb_ptr = new QComboBox;
 	m_pidQcb_ptr->addItem("Depth");
 	m_pidQcb_ptr->addItem("Yaw");
+	m_pidQcb_ptr->addItem("Roll");
+	m_pidQcb_ptr->addItem("Pitch");
+
 	m_pidQcb_ptr->setCurrentIndex(0);
 	//. . .
 	//insert new items here
@@ -212,6 +215,9 @@ void BurnInator::s_processApply()
 //	std::string pidName = m_pidQcb_ptr->currentText().toStdString();
 	if(m_pidName == "Depth")		emit sig_setDepthPdi(numbers);
 	else if(m_pidName == "Yaw")	emit sig_setYawPdi(numbers);
+	else if(m_pidName == "Roll")	emit sig_setRollPdi(numbers);
+	else if(m_pidName == "Pitch")	emit sig_setPitchPdi(numbers);
+
 	//. . .
 	//insert another PID controllers here
 

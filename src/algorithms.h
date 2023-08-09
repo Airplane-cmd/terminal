@@ -22,8 +22,12 @@ public slots:
 	void setYaw(float);
 	void emitDepthControlSignal(bool);
 	void emitYawControlSignal(bool);
+	void emitRollControlSignal(bool);
+	void emitPitchControlSignal(bool);
 signals:
 	void depthControl(bool, float);
 	void yawControl(bool, float);
+	void rollControl(bool, float);
+	void pitchControl(bool, float);
 };
 #endif
