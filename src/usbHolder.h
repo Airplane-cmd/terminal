@@ -5,9 +5,9 @@
 #include <QTimer>
 #include <QByteArray>
 #include <QThread>
+#include <QGamepad>
 
-#include <atomic>
-#include <thread>
+#include <memory>
 #include <array>
 
 #include <libusb-1.0/libusb.h>
@@ -20,32 +20,13 @@ public:
 	~USBHolder();
 
 private:
-	uint8_t m_camCount;
-	bool m_camerasPositionsChanged_f;
-	std::vector<uint8_t> m_camPosValues_vctr;
-	std::vector<uint8_t> m_previousCamPosValues_vctr;
-	uint8_t m_camStep;
-	uint8_t m_powerLimit;
-	uint32_t m_openDelay;
-	libusb_device_handle* m_device;
-	QTimer* m_timer;
-	QTimer* m_timerOpen;
+	std::shared_ptr<QGamepad> m_gamepad_ptr;
+	uint8_t m_powerLimit = 100;
+	std::array<int8_t, 2> m_camerasPositions_arr;
 	QByteArray m_data;
-	QByteArray data_new;
-	unsigned char data_ch[22];
-	bool m_state_f = 0;
-	QThread *m_joystickThread;
-
-	void printRawData();
+	QByteArray m_perefData;
 	void printControlData();
-
-	bool openDevice();
-	void closeDevice();
-	void readUSBData();
-	void startJoystickThread();
-
-	std::atomic<bool> m_stopThread{0};
-	std::thread *m_thread;
+	
 private slots:
     	void readJoystickData();
 	void s_openDevice();
@@ -53,11 +34,10 @@ private slots:
 public slots:
 	void setPowerLimit(uint8_t);
 	void s_setCamerasPositions(const std::array<int8_t, 2> &);
-
 signals:
-    void joystickData(const QByteArray &, uint8_t);
-    void sig_camerasPositions(const std::array<int8_t, 2> &);
-    void sig_setPowerLimit(uint8_t);
+	void joystickData(const QByteArray &, uint8_t);
+	void sig_camerasPositions(const std::array<int8_t, 2> &);
+	void sig_setPowerLimit(uint8_t);
 };
 
 #endif 

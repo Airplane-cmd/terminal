@@ -6,265 +6,214 @@
 #include <future>
 
 #include <cmath>
+#include <cstdlib>
 
 #include "usbHolder.h"
 
-#define JOYSTICK_VENDOR_ID   0x44f
-#define JOYSTICK_PRODUCT_ID  0xb108
-
-USBHolder::USBHolder(QObject *parent) : QObject(parent)
+USBHolder::USBHolder(QObject *parent) : QObject{parent}
 {
-//	startJoystickThread();		
-	m_camCount = 2;
-	for(uint8_t i = 0; i < m_camCount; ++i)
-	{
-		m_camPosValues_vctr.push_back(0);
-		m_previousCamPosValues_vctr.push_back(0);
-	}
-	m_powerLimit = 50;
-	m_device = 0;
-	m_camStep = 10;
-	m_openDelay = 1000;
-	m_timer = new QTimer(this);
-	m_timerOpen = new QTimer(this);
-//	m_thread = new std::thread(&USBHolder::readJoystickData, this);
-	connect(m_timer, &QTimer::timeout, this, &USBHolder::readJoystickData);
-	connect(m_timerOpen, &QTimer::timeout, this, &USBHolder::s_openDevice);
-	m_timerOpen->start(m_openDelay);
-//	if(openDevice())
-//	{
-//	      	m_timer->start(10);
-		
-//		if(libusb_kernel_driver_active(m_device, 0) == 1)
-//	      	{
-//        		int result = libusb_detach_kernel_driver(m_device, 0);
-//	  		if (result == LIBUSB_SUCCESS)
-//	      		{
-//        			qDebug() << "Kernel driver detached successfully";
-//            		}
-//        		else	qDebug() << "Error detaching kernel driver:" << libusb_error_name(result) << Qt::endl;
-//		}
-//        }
-	
+  auto gamepads = QGamepadManager::instance()->connectedGamepads();
+  m_data.resize(4);
+  m_perefData.resize(4);
+
+  if(gamepads.isEmpty())
+  {
+    qDebug() << "[-] Gamepad is not connected\n";
+    return;
+  }
+  else qDebug() << "[+] Gamepad detected\n";
+
+  emit sig_setPowerLimit(100);
+  m_camerasPositions_arr = {0, 0};
+
+  m_gamepad_ptr = std::make_shared<QGamepad>(*gamepads.begin(), this);
+  connect(m_gamepad_ptr.get(), &QGamepad::axisLeftXChanged, this, [this](double value)
+  {
+    qDebug() << "Left X" << value;
+    m_data[2] = int8_t(m_powerLimit * value);
+    emit joystickData(m_data, 2);
+//    printControlData();
+  });
+  connect(m_gamepad_ptr.get(), &QGamepad::axisLeftYChanged, this, [this](double value)
+  {
+    qDebug() << "Left Y" << value;
+    m_data[3] = int8_t(m_powerLimit * value);
+    emit joystickData(m_data, 2);
+//    printControlData();
+  });
+  connect(m_gamepad_ptr.get(), &QGamepad::axisRightXChanged, this, [this](double value)
+  {
+    qDebug() << "Right X" << value;
+    m_data[1] = int8_t(m_powerLimit * value);
+    emit joystickData(m_data, 2);
+//    printControlData();
+  });
+
+  connect(m_gamepad_ptr.get(), &QGamepad::axisRightYChanged, this, [this](double value){
+    qDebug() << "Right Y" << value;
+    m_data[0] = int8_t(m_powerLimit * value);
+    emit joystickData(m_data, 2);
+//    printControlData();
+  });
+
+  connect(m_gamepad_ptr.get(), &QGamepad::buttonXChanged, this, [this](bool pressed){
+    qDebug() << "Button X" << pressed;
+    emit sig_setPowerLimit(10);
+
+  });
+ connect(m_gamepad_ptr.get(), &QGamepad::buttonBChanged, this, [this](bool pressed){
+    qDebug() << "Button B" << pressed;
+    emit sig_setPowerLimit(25);
+
+  });
+  connect(m_gamepad_ptr.get(), &QGamepad::buttonAChanged, this, [this](bool pressed){
+    qDebug() << "Button A" << pressed;
+    emit sig_setPowerLimit(50);
+
+  });
+  connect(m_gamepad_ptr.get(), &QGamepad::buttonYChanged, this, [this](bool pressed){
+    qDebug() << "Button Y" << pressed;
+    emit sig_setPowerLimit(75);
+
+  });
+           connect(m_gamepad_ptr.get(), &QGamepad::buttonR3Changed, this, [](bool pressed){
+          qDebug() << "Button R3" << pressed;
+      });
+      connect(m_gamepad_ptr.get(), &QGamepad::buttonL3Changed, this, [](bool pressed){
+          qDebug() << "Button L3" << pressed;
+      });
+
+  connect(m_gamepad_ptr.get(), &QGamepad::buttonL1Changed, this, [this](bool pressed)
+  {
+    qDebug() << "Button L1" << pressed;
+    m_perefData[2] = ((pressed) ? -100 : 0);
+    emit joystickData(m_perefData, 29);
+
+  });
+  connect(m_gamepad_ptr.get(), &QGamepad::buttonR1Changed, this, [this](bool pressed)
+  {
+    qDebug() << "Button R1" << pressed;
+    m_perefData[2] = ((pressed) ? 100 : 0);
+    emit joystickData(m_perefData, 29);
+
+  });
+
+  connect(m_gamepad_ptr.get(), &QGamepad::buttonL2Changed, this, [this](double value)
+  {
+    qDebug() << "Button L2: " << value;
+    m_perefData[3] = ((value > 0.01) ? -100 : 0);
+    emit joystickData(m_perefData, 29);
+  });
+  connect(m_gamepad_ptr.get(), &QGamepad::buttonR2Changed, this, [this](double value)
+  {
+    qDebug() << "Button R2: " << value;
+    m_perefData[3] = ((value > 0.01) ? 100 : 0);
+    emit joystickData(m_perefData, 29);
+
+  });
+
+  connect(m_gamepad_ptr.get(), &QGamepad::buttonSelectChanged, this, [](bool pressed)
+  {
+    qDebug() << "Button Select" << pressed;
+  });
+      connect(m_gamepad_ptr.get(), &QGamepad::buttonCenterChanged, this, [](bool pressed){
+          qDebug() << "Button Center" << pressed;
+      });
+
+
+  connect(m_gamepad_ptr.get(), &QGamepad::buttonDownChanged, this, [this](bool pressed)
+  {
+    qDebug() << "Button Down" << pressed;
+    int8_t &pos = m_camerasPositions_arr[0];
+    pos = (pos < -90) ? -100 : (pos - 10);
+    m_perefData[0] = pos;
+    emit joystickData(m_perefData, 29);
+    emit sig_camerasPositions(m_camerasPositions_arr);
+
+  });
+  connect(m_gamepad_ptr.get(), &QGamepad::buttonUpChanged, this, [this](bool pressed)
+  {
+    qDebug() << "Button Up" << pressed;
+    int8_t &pos = m_camerasPositions_arr[0];
+    pos = (pos > 90) ? 100 : (pos + 10);
+    m_perefData[0] = pos;
+    emit joystickData(m_perefData, 29);
+    emit sig_camerasPositions(m_camerasPositions_arr);
+
+  });
+  connect(m_gamepad_ptr.get(), &QGamepad::buttonLeftChanged, this, [this](bool pressed)
+  {
+    qDebug() << "Button Left" << pressed;
+    int8_t &pos = m_camerasPositions_arr[1];
+    pos = (pos < -90) ? -100 : (pos - 10);
+    m_perefData[1] = pos;
+    emit joystickData(m_perefData, 29);
+    emit sig_camerasPositions(m_camerasPositions_arr);
+
+  });
+  connect(m_gamepad_ptr.get(), &QGamepad::buttonRightChanged, this, [this](bool pressed)
+  {
+    qDebug() << "Button Right" << pressed;
+    int8_t &pos = m_camerasPositions_arr[1];
+    pos = (pos > 90) ? 100 : (pos + 10);
+    m_perefData[1] = pos;
+    emit joystickData(m_perefData, 29);
+    emit sig_camerasPositions(m_camerasPositions_arr);
+
+  });
+
+
+      connect(m_gamepad_ptr.get(), &QGamepad::buttonStartChanged, this, [](bool pressed){
+          qDebug() << "Button Start" << pressed;
+      });
+
+      connect(m_gamepad_ptr.get(), &QGamepad::buttonGuideChanged, this, [](bool pressed){
+          qDebug() << "Button Guide" << pressed;
+      });
+  
 }
 USBHolder::~USBHolder()
 {
-	m_stopThread = 1;
-	m_timer->stop();
-//	m_thread->join();
-	closeDevice();
-//	delete m_device;
-//	delete m_thread;
-	delete m_timer;
-	delete m_timerOpen;
-
-
-}
-void USBHolder::startJoystickThread()
-{
-//	m_joystickThread = new QThread();
-//	moveToThread(m_joystickThread);
-//	connect(m_joystickThread, &QThread::started, this, &USBHolder::readJoystickData);
-//	m_joystickThread->start();
 }
 void USBHolder::setPowerLimit(uint8_t vl)
 {
-	if(vl <= 100)	m_powerLimit = vl;
+  if(vl <= 100) m_powerLimit = vl;
 }
-void USBHolder::printRawData()
+/*void USBHolder::printRawData()
 {
-	std::system("clear");
-	for(int i = 0; i < 22; ++i)	qDebug() << i << ": " << data_ch[i] << Qt::endl;
 }
+*/
 void USBHolder::printControlData()
 {
-	for(int i = 0; i < m_data.size(); ++i)	qDebug() << i << ": " << int8_t(m_data[i]) << Qt::endl;
+  std::system("clear");
+  for(uint8_t i = 0; i < 4; ++i)
+  {
+    qDebug() << int8_t(m_data[i]) << " ";
+  }
 }
+
 void USBHolder::readJoystickData()
 {
-	m_data.resize(4);//
-	data_new.resize(4);
-	int bytesTransferred = 0;
-	int result = 0;
-//	result = libusb_interrupt_transfer(m_device, 0x81, data_ch, sizeof(data_ch), &bytesTransferred, 0);
-//	while(!m_stopThread)
-//	{
-//		auto future = std::async(std::launch::async, [&]()
-//		{
-	result = libusb_interrupt_transfer(m_device, 0x81, data_ch, sizeof(data_ch), &bytesTransferred, 10);
-	if(result == -4)	
-	{
-		closeDevice();
-		m_timer->stop();
-		m_timerOpen->start(m_openDelay);
-		return;
-	}
-//			qDebug() << result << '\n';
-//		});
-//		while(future.wait_for(std::chrono::milliseconds(10)) != std::future_status::ready)
-//		{
-			QCoreApplication::processEvents();
-//		}
-//		qDebug() << "libusb_interrupt_transter returns " << result << Qt::endl;	
-//		qDebug() << "Size: " << bytesTransferred << Qt::endl;
-	if (result == LIBUSB_SUCCESS && bytesTransferred == sizeof(data_ch))
-	{
-		qDebug() << "here" << Qt::endl;
-//			auto fj = {[&](){return int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6]));}};
-	
-		m_data[0] = uint8_t(-float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[5] + 256 * (3 - data_ch[6])) - 512) / 512 * 100);//thrusters control values in range -100:100
-		m_data[1] = uint8_t(float(m_powerLimit) / 100 * float(int16_t(256 - data_ch[3] + 256 * (3 - data_ch[4])) - 512) / 512 * 100);
-		m_data[2] = uint8_t(-0.5 * float(m_powerLimit) / 100 * float(data_ch[8] - 128) / 128 * 100);//w 07
-		m_data[3] = uint8_t(-float(m_powerLimit) / 100 * float((256 - data_ch[7]) - 128) / 128 * 100);
-
-//			data_new[0] = int8_t(float(data_ch[9] - 128) / 128 * 100);//hardware debug statements
-//			data_new[1] = int8_t(float(data_ch[9] - 128) / 128 * 100);
-
-		data_new[2] = (data_ch[9] < 100) ? 100 : (((data_ch[9]) > 156) ? -100 : 0);//int8_t(float(data_ch[9] - 128) / 128 * 100);//nt8_t(int(int8_t(data_ch[9]) - 128) / 128 * 100); //uint8_t(int(int8_t(data_ch[9]) - 128) / 128 * 100);
-		data_new[3] = int8_t((data_ch[16] == 255) ? -100 : ((data_ch[17] == 255) ? 100 : 0));
-		for(uint8_t i = 0; i < m_camCount; ++i)//cams control values
-		{
-			if(int8_t(m_camPosValues_vctr[i] + m_camStep) < 101)
-			{
-				m_previousCamPosValues_vctr[i] = m_camPosValues_vctr[i];
-				m_camPosValues_vctr[i] += m_camStep * (uint8_t(data_ch[2 * i + 10]) / 255);
-			}
-			if(int8_t(m_camPosValues_vctr[i] - m_camStep) > -101)
-			{
-				m_previousCamPosValues_vctr[i] = m_camPosValues_vctr[i];
-				m_camPosValues_vctr[i] -= m_camStep * (uint8_t(data_ch[2 * i + 11]) / 255);
-			}
-			if(m_camPosValues_vctr[i] != m_previousCamPosValues_vctr[i])	m_camerasPositionsChanged_f = 1;
-			data_new[i] = m_camPosValues_vctr[i];		
-			if(m_camerasPositionsChanged_f)
-			{
-				std::array<int8_t, 2> camerasPositions;
-				for(uint8_t i = 0; i < 2; ++i)	camerasPositions[i] = m_camPosValues_vctr[i];
-				emit sig_camerasPositions(camerasPositions);
-				m_camerasPositionsChanged_f = 0;
-			}
-			printRawData();
-//			qDebug() << int8_t(data_new[0]) << " " << int8_t(data_new[1]) << '\n';//int8_t(float(data_ch[9] - 128) / 128 * 100) << '\n';
-//			printControlData();
-			QCoreApplication::processEvents();
-			emit joystickData(m_data, 2);
-			emit joystickData(data_new, 29);
-			QCoreApplication::processEvents();
-		}
-		for(uint8_t i = 18; i < 22; ++i)
-		{
-			if(data_ch[i] != 0)
-			{
-				m_powerLimit = 25 * (i - 18 + 1);
-				if(i == 21)	m_powerLimit = 10;
-				emit sig_setPowerLimit(m_powerLimit);
-			}
-		}
-    }	
-	else
-	{
-//			qDebug() << "Size: " << bytesTransferred << Qt::endl;
-//			qDebug() << libusb_error_name(result) << Qt::endl;
-//       		closeDevice();
-//		      	openDevice();
-	}
-	QTimer timer;
-	connect(&timer, &QTimer::timeout, this, &USBHolder::s_processEvents);
-	timer.start(10);
-//		QCoreApplication::exec();
-//	}
-}
-void USBHolder::s_processEvents()
-{
-	QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-}
-void USBHolder::readUSBData()
-{
-	while(m_timer->isActive())
-	{
-		readJoystickData();
-		QCoreApplication::processEvents();
-	}
 
 }
 void USBHolder::s_openDevice()
 {
-	QCoreApplication::processEvents();
+}
+void USBHolder::s_processEvents()
+{
+}
 
-	libusb_context* context;
-	libusb_device** list;
-	libusb_device* device = 0;
-	libusb_device_handle *handle = 0;
-    	if(libusb_init(&context) != LIBUSB_SUCCESS)
-    	{
-        	return;// false;
-    	}
-    	int count = libusb_get_device_list(context, &list);
-    	for(int i = 0; i < count; i++)
-    	{
-        	libusb_device_descriptor descriptor;
-        	libusb_get_device_descriptor(list[i], &descriptor);
-//		qDebug() << Qt::hex << i << " product id: 0x" << descriptor.idProduct << " vendor id: 0x" << descriptor.idVendor << Qt::endl;
-        	if(descriptor.idVendor == JOYSTICK_VENDOR_ID && descriptor.idProduct == JOYSTICK_PRODUCT_ID)
-		{
-			qDebug() << "Joystick found:" << Qt::endl;
-        		if(libusb_open(list[i], &m_device) == LIBUSB_SUCCESS)
-			{
-				m_timerOpen->stop();
-				m_timer->start(11);
-//				m_state_f = 1;
-				qDebug() <<"Correct product id: " << descriptor.idProduct << Qt::endl;
-				if(libusb_kernel_driver_active(m_device, 0) == 1)
-        		{
-        			int result = libusb_detach_kernel_driver(m_device, 0);
-        			if(result == LIBUSB_SUCCESS)
-        			{
-        				qDebug() << "Kernel driver detached successfully";
-            		}
-        			else	qDebug() << "Error detaching kernel driver:" << libusb_error_name(result) << Qt::endl;
-				}
-				break;
-			}
-			else	
-			{
-//				qDebug() << "libusb_open != LIBUSB_SUCCESS" << Qt::endl;
-				break;
-			}
-		}
-        
-    	}
-	qDebug() << "open device?\n";
-	libusb_free_device_list(list, 1);
-    	if(m_device == 0)
-	{
-        	libusb_exit(context);
-        	return;// false;
-    	}
-	qDebug() << "before setting configuration\n"; 
-    	libusb_set_configuration(m_device, 1);
-	qDebug() << "Confuguration set\n";
-    	libusb_claim_interface(m_device, 0);
-	qDebug() << "Interface claimed\n";
-    	return;// true;
+void USBHolder::s_setCamerasPositions(const std::array<int8_t, 2> &camerasPositions)
+{
+
+}
+/*
+void USBHolder::s_openDevice()
+{
 }
 void USBHolder::closeDevice()
 {
-    qDebug() << "closing device\n"; 
-    if (m_device != 0)
-    {
-        libusb_release_interface(m_device, 0);
-        libusb_close(m_device);
-        m_device = 0;
-    }
-    qDebug() << "device is set\n";
 }
-void USBHolder::s_setCamerasPositions(const std::array<int8_t, 2> &camerasPositions)
-{
-	for(uint8_t i = 0; i < 2; ++i)
-	{
-		m_camPosValues_vctr[i] = camerasPositions[i];
-		m_previousCamPosValues_vctr[i] = camerasPositions[i];
-		qDebug() << "value set in usbHolder: " << camerasPositions[i] << '\n';
-	}
-}
+*/
+
 
